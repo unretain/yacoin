@@ -12,7 +12,7 @@
 #define BITCOIN_UTIL_H
 
 #if defined(HAVE_CONFIG_H)
-#include "config/yacoin-config.h"
+#include "config/scrypt-config.h"
 #endif
 
 #include "uint256.h"

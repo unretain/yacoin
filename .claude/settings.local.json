@@ -1,7 +1,9 @@
 {
   "permissions": {
     "allow": [
-      "Bash(gh repo view:*)"
+      "Bash(gh repo view:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)"
     ]
   }
 }

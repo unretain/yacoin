@@ -4,7 +4,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #if defined(HAVE_CONFIG_H)
-#include "config/yacoin-config.h"
+#include "config/scrypt-config.h"
 #endif
 
 #include "optionsdialog.h"

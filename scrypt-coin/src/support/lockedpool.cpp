@@ -6,7 +6,7 @@
 #include "support/cleanse.h"
 
 #if defined(HAVE_CONFIG_H)
-#include "config/yacoin-config.h"
+#include "config/scrypt-config.h"
 #endif
 
 #ifdef WIN32

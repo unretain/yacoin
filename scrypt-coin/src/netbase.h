@@ -7,7 +7,7 @@
 #define YACOIN_NETBASE_H
 
 #if defined(HAVE_CONFIG_H)
-#include "config/yacoin-config.h"
+#include "config/scrypt-config.h"
 #endif
 
 #include "compat.h"

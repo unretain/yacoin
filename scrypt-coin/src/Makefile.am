@@ -25,20 +25,20 @@ BITCOIN_INCLUDES=-I$(builddir) -I$(builddir)/obj $(BDB_CPPFLAGS) $(BOOST_CPPFLAG
 BITCOIN_INCLUDES += -I$(srcdir)/secp256k1/include
 BITCOIN_INCLUDES += $(UNIVALUE_CFLAGS)
 
-LIBBITCOIN_SERVER=libyacoin_server.a
-LIBBITCOIN_COMMON=libyacoin_common.a
-LIBBITCOIN_CONSENSUS=libyacoin_consensus.a
-LIBBITCOIN_CLI=libyacoin_cli.a
-LIBBITCOIN_UTIL=libyacoin_util.a
-LIBBITCOIN_CRYPTO=crypto/libyacoin_crypto.a
-LIBBITCOINQT=qt/libyacoinqt.a
+LIBBITCOIN_SERVER=libscrypt_server.a
+LIBBITCOIN_COMMON=libscrypt_common.a
+LIBBITCOIN_CONSENSUS=libscrypt_consensus.a
+LIBBITCOIN_CLI=libscrypt_cli.a
+LIBBITCOIN_UTIL=libscrypt_util.a
+LIBBITCOIN_CRYPTO=crypto/libscrypt_crypto.a
+LIBBITCOINQT=qt/libscryptqt.a
 LIBSECP256K1=secp256k1/libsecp256k1.la
 
 #if BUILD_BITCOIN_LIBS
-#LIBBITCOINCONSENSUS=libyacoinconsensus.la
+#LIBBITCOINCONSENSUS=libscryptconsensus.la
 #endif
 if ENABLE_WALLET
-LIBBITCOIN_WALLET=libyacoin_wallet.a
+LIBBITCOIN_WALLET=libscrypt_wallet.a
 endif
 
 $(LIBSECP256K1): $(wildcard secp256k1/src/*) $(wildcard secp256k1/include/*)
@@ -64,11 +64,11 @@ TESTS =
 BENCHMARKS =
  
 if BUILD_BITCOIND
-  bin_PROGRAMS += yacoind
+  bin_PROGRAMS += scryptd
 endif
 
 if BUILD_BITCOIN_UTILS
-  bin_PROGRAMS += yacoin-cli
+  bin_PROGRAMS += scrypt-cli
 endif
 
 .PHONY: FORCE check-symbols check-security
@@ -182,7 +182,7 @@ obj/build.h: FORCE
 	@$(MKDIR_P) $(builddir)/obj
 	@$(top_srcdir)/share/genbuild.sh "$(abs_top_builddir)/src/obj/build.h" \
 	  "$(abs_top_srcdir)"
-libyacoin_util_a-clientversion.$(OBJEXT): obj/build.h
+libscrypt_util_a-clientversion.$(OBJEXT): obj/build.h
 
 SCRYPTDEFS=-DBOOST_SPIRIT_THREADSAFE -DUSE_ASM 
 SCRYPTHARDENING=-fno-stack-protector -fstack-protector-all -Wstack-protector -D_FORTIFY_SOURCE=2 -fPIC
@@ -192,13 +192,13 @@ SCRYPTDEFS+=-DSCRYPT_KECCAK512 -DSCRYPT_CHACHA -DSCRYPT_CHOOSE_COMPILETIME
 DEFS+=-DSCRYPT_KECCAK512 -DSCRYPT_CHACHA -DSCRYPT_CHOOSE_COMPILETIME
 
 xCXXFLAGS_SCRYPT_JANE=-O3 -msse2 -pthread -Wall -Wextra -Wformat -Wformat-security -Wno-unused-parameter -DUSE_ASM $(DEBUGFLAGS) $(SCRYPTDEFS) $(SCRYPTHARDENING) 
-yacoind-scrypt-jane.o: scrypt-jane/scrypt-jane.c
+scryptd-scrypt-jane.o: scrypt-jane/scrypt-jane.c
 	gcc -c $(xCXXFLAGS_SCRYPT_JANE) -MMD -o $@ $<
 
-# server: shared between yacoind and yacoin-qt
-libyacoin_server_a_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES) $(MINIUPNPC_CPPFLAGS) $(EVENT_CFLAGS) $(EVENT_PTHREADS_CFLAGS) -fPIC
-libyacoin_server_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
-libyacoin_server_a_SOURCES = \
+# server: shared between scryptd and scrypt-qt
+libscrypt_server_a_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES) $(MINIUPNPC_CPPFLAGS) $(EVENT_CFLAGS) $(EVENT_PTHREADS_CFLAGS) -fPIC
+libscrypt_server_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
+libscrypt_server_a_SOURCES = \
   adaptivepow.cpp \
   addrdb.cpp \
   addrman.cpp \
@@ -251,11 +251,11 @@ libyacoin_server_a_SOURCES = \
   validationinterface.cpp \
   $(BITCOIN_CORE_H)
 
-# wallet: shared between yacoind and yacoin-qt, but only linked
+# wallet: shared between scryptd and scrypt-qt, but only linked
 # when wallet enabled
-libyacoin_wallet_a_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
-libyacoin_wallet_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
-libyacoin_wallet_a_SOURCES = \
+libscrypt_wallet_a_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
+libscrypt_wallet_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
+libscrypt_wallet_a_SOURCES = \
   wallet/crypter.cpp \
   wallet/db.cpp \
   wallet/rpcdump.cpp \
@@ -265,9 +265,9 @@ libyacoin_wallet_a_SOURCES = \
   $(BITCOIN_CORE_H)
 
 # crypto primitives library
-crypto_libyacoin_crypto_a_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_CONFIG_INCLUDES)
-crypto_libyacoin_crypto_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
-crypto_libyacoin_crypto_a_SOURCES = \
+crypto_libscrypt_crypto_a_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_CONFIG_INCLUDES)
+crypto_libscrypt_crypto_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
+crypto_libscrypt_crypto_a_SOURCES = \
   crypto/aes.cpp \
   crypto/aes.h \
   crypto/chacha20.h \
@@ -289,9 +289,9 @@ crypto_libyacoin_crypto_a_SOURCES = \
   crypto/siphash.h
 
 # consensus: shared between all executables that validate any consensus rules.
-libyacoin_consensus_a_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
-libyacoin_consensus_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
-libyacoin_consensus_a_SOURCES = \
+libscrypt_consensus_a_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
+libscrypt_consensus_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
+libscrypt_consensus_a_SOURCES = \
   amount.h \
   arith_uint256.cpp \
   arith_uint256.h \
@@ -323,10 +323,10 @@ libyacoin_consensus_a_SOURCES = \
   LibBoolEE.cpp \
   LibBoolEE.h
 
-# common: shared between yacoind, and yacoin-qt and non-server tools
-libyacoin_common_a_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
-libyacoin_common_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
-libyacoin_common_a_SOURCES = \
+# common: shared between scryptd, and scrypt-qt and non-server tools
+libscrypt_common_a_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
+libscrypt_common_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
+libscrypt_common_a_SOURCES = \
   base58.cpp \
   chainparams.cpp \
   coins.cpp \
@@ -348,9 +348,9 @@ libyacoin_common_a_SOURCES = \
 # util: shared between all executables.
 # This library *must* be included to make sure that the glibc
 # backward-compatibility objects and their sanity checks are linked.
-libyacoin_util_a_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
-libyacoin_util_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
-libyacoin_util_a_SOURCES = \
+libscrypt_util_a_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
+libscrypt_util_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
+libscrypt_util_a_SOURCES = \
   support/lockedpool.cpp \
   chainparamsbase.cpp \
   clientversion.cpp \
@@ -370,30 +370,30 @@ libyacoin_util_a_SOURCES = \
   $(BITCOIN_CORE_H)
 
 if GLIBC_BACK_COMPAT
-libyacoin_util_a_SOURCES += compat/glibc_compat.cpp
+libscrypt_util_a_SOURCES += compat/glibc_compat.cpp
 endif
 
-# cli: shared between yacoin-cli and yacoin-qt
-libyacoin_cli_a_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
-libyacoin_cli_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
-libyacoin_cli_a_SOURCES = \
+# cli: shared between scrypt-cli and scrypt-qt
+libscrypt_cli_a_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
+libscrypt_cli_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
+libscrypt_cli_a_SOURCES = \
   rpc/client.cpp \
   $(BITCOIN_CORE_H)
 
-nodist_libyacoin_util_a_SOURCES = $(srcdir)/obj/build.h
+nodist_libscrypt_util_a_SOURCES = $(srcdir)/obj/build.h
 #
 
-# yacoind binary #
-yacoind_SOURCES = yacoind.cpp
-yacoind_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
-yacoind_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
-yacoind_LDFLAGS = $(RELDFLAGS) $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS)
+# scryptd binary #
+scryptd_SOURCES = scryptd.cpp
+scryptd_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
+scryptd_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
+scryptd_LDFLAGS = $(RELDFLAGS) $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS)
 
 if TARGET_WINDOWS
-yacoind_SOURCES += yacoind-res.rc
+scryptd_SOURCES += scryptd-res.rc
 endif
 
-yacoind_LDADD = \
+scryptd_LDADD = \
   $(LIBBITCOIN_SERVER) \
   $(LIBBITCOIN_COMMON) \
   $(LIBUNIVALUE) \
@@ -406,40 +406,40 @@ yacoind_LDADD = \
   $(LIBMEMENV) \
   $(LIBSECP256K1)
 
-yacoind_LDADD += $(BOOST_LIBS) $(BDB_LIBS) $(SSL_LIBS) $(CRYPTO_LIBS) $(MINIUPNPC_LIBS) $(EVENT_PTHREADS_LIBS) $(EVENT_LIBS) $(ZMQ_LIBS)
+scryptd_LDADD += $(BOOST_LIBS) $(BDB_LIBS) $(SSL_LIBS) $(CRYPTO_LIBS) $(MINIUPNPC_LIBS) $(EVENT_PTHREADS_LIBS) $(EVENT_LIBS) $(ZMQ_LIBS)
 
-# yacoin-cli binary #
-yacoin_cli_SOURCES = yacoin-cli.cpp
-yacoin_cli_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES) $(EVENT_CFLAGS)
-yacoin_cli_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
-yacoin_cli_LDFLAGS = $(RELDFLAGS) $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS)
+# scrypt-cli binary #
+scrypt_cli_SOURCES = scrypt-cli.cpp
+scrypt_cli_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES) $(EVENT_CFLAGS)
+scrypt_cli_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
+scrypt_cli_LDFLAGS = $(RELDFLAGS) $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS)
 
 if TARGET_WINDOWS
-yacoin_cli_SOURCES += yacoin-cli-res.rc
+scrypt_cli_SOURCES += scrypt-cli-res.rc
 endif
 
-yacoin_cli_LDADD = \
+scrypt_cli_LDADD = \
   $(LIBBITCOIN_CLI) \
   $(LIBUNIVALUE) \
   $(LIBBITCOIN_UTIL) \
   $(LIBBITCOIN_CRYPTO)
 
-yacoin_cli_LDADD += $(BOOST_LIBS) $(SSL_LIBS) $(CRYPTO_LIBS) $(EVENT_LIBS)
+scrypt_cli_LDADD += $(BOOST_LIBS) $(SSL_LIBS) $(CRYPTO_LIBS) $(EVENT_LIBS)
 #
 
 # bitcoinconsensus library #
 #if BUILD_BITCOIN_LIBS
 #include_HEADERS = script/bitcoinconsensus.h
-#libyacoinconsensus_la_SOURCES = $(crypto_libyacoin_crypto_a_SOURCES) $(libyacoin_consensus_a_SOURCES)
+#libscryptconsensus_la_SOURCES = $(crypto_libscrypt_crypto_a_SOURCES) $(libscrypt_consensus_a_SOURCES)
 
 #if GLIBC_BACK_COMPAT
-#  libyacoinconsensus_la_SOURCES += compat/glibc_compat.cpp
+#  libscryptconsensus_la_SOURCES += compat/glibc_compat.cpp
 #endif
 
-#libyacoinconsensus_la_LDFLAGS = $(AM_LDFLAGS) -no-undefined $(RELDFLAGS)
-#libyacoinconsensus_la_LIBADD = $(LIBSECP256K1)
-#libyacoinconsensus_la_CPPFLAGS = $(AM_CPPFLAGS) -I$(builddir)/obj -I$(srcdir)/secp256k1/include -DBUILD_BITCOIN_INTERNAL
-#libyacoinconsensus_la_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
+#libscryptconsensus_la_LDFLAGS = $(AM_LDFLAGS) -no-undefined $(RELDFLAGS)
+#libscryptconsensus_la_LIBADD = $(LIBSECP256K1)
+#libscryptconsensus_la_CPPFLAGS = $(AM_CPPFLAGS) -I$(builddir)/obj -I$(srcdir)/secp256k1/include -DBUILD_BITCOIN_INTERNAL
+#libscryptconsensus_la_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 
 #endif
 #
@@ -467,12 +467,12 @@ DISTCLEANFILES = obj/build.h
 
 EXTRA_DIST = $(CTAES_DIST)
 
-config/yacoin-config.h: config/stamp-h1
+config/scrypt-config.h: config/stamp-h1
 	@$(MAKE) -C $(top_builddir) $(subdir)/$(@)
-config/stamp-h1: $(top_srcdir)/$(subdir)/config/yacoin-config.h.in $(top_builddir)/config.status
+config/stamp-h1: $(top_srcdir)/$(subdir)/config/scrypt-config.h.in $(top_builddir)/config.status
 	$(AM_V_at)$(MAKE) -C $(top_builddir) $(subdir)/$(@)
-$(top_srcdir)/$(subdir)/config/yacoin-config.h.in:  $(am__configure_deps)
-	$(AM_V_at)$(MAKE) -C $(top_srcdir) $(subdir)/config/yacoin-config.h.in
+$(top_srcdir)/$(subdir)/config/scrypt-config.h.in:  $(am__configure_deps)
+	$(AM_V_at)$(MAKE) -C $(top_srcdir) $(subdir)/config/scrypt-config.h.in
 
 clean-local:
 	-$(MAKE) -C secp256k1 clean
