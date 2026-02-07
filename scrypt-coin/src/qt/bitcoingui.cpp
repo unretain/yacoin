@@ -40,6 +40,9 @@
 
 #include <iostream>
 
+#include <boost/bind/bind.hpp>
+using namespace boost::placeholders;
+
 #include <QAction>
 #include <QApplication>
 #include <QDateTime>
