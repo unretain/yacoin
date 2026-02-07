@@ -72,6 +72,11 @@ struct Params {
     int64_t nPowTargetTimespan;
     int64_t DifficultyAdjustmentInterval() const { return nPowTargetTimespan / nPowTargetSpacing; }
 
+    /** Proof of stake parameters */
+    int64_t nStakeMinAge;           // Minimum coin age for staking
+    int64_t nStakeMaxAge;           // Maximum coin age for stake weight calculation
+    int64_t nModifierInterval;      // Stake modifier update interval
+
     /**
      * AdaptivePow parameters - GPU-mineable algorithm with growing memory
      */
