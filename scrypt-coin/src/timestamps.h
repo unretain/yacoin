@@ -5,7 +5,7 @@
 #ifndef _MSC_VER
     #include <limits.h>
 #endif
-#include <stdint.h>;
+#include <stdint.h>
 
 const ::int64_t nSecondsPerMinute = 60, nMinutesPerHour = 60,
                 nOneHourInSeconds = nSecondsPerMinute * nMinutesPerHour,

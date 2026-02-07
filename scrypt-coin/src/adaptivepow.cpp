@@ -407,6 +407,6 @@ bool InitAdaptivePowDAG(uint32_t epoch, const Consensus::Params& params) {
         return true; // Already initialized for this epoch
     }
 
-    g_adaptivePowDAG = std::make_unique<AdaptivePowDAG>();
+    g_adaptivePowDAG.reset(new AdaptivePowDAG());
     return g_adaptivePowDAG->Generate(epoch, params);
 }

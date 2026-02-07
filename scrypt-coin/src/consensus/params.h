@@ -8,6 +8,7 @@
 #define SCRYPT_CONSENSUS_PARAMS_H
 
 #include "uint256.h"
+#include "arith_uint256.h"
 #include <map>
 #include <string>
 #include <limits>
@@ -50,6 +51,9 @@ struct Params {
     int BIP66Height;
     /** Block height at which BIP68 becomes active */
     int BIP68Height;
+
+    /** Heliopolis hardfork height */
+    int HeliopolisHardforkHeight;
 
     /**
      * Minimum blocks including miner confirmation of the total of 2016 blocks in a retargeting period,
