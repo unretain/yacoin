@@ -37,6 +37,8 @@
 #include "miner.h"
 #include "rpc/mining.h"
 
+#include <array>
+
 #if defined(NDEBUG)
 # error "Bitcoin cannot be compiled without assertions."
 #endif
