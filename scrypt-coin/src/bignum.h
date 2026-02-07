@@ -102,9 +102,9 @@ public:
     BIGNUM* get() { return bn; }
     const BIGNUM* get() const { return bn; }
 
-    // Allow implicit conversion to BIGNUM* for compatibility
-    operator BIGNUM*() { return bn; }
-    operator const BIGNUM*() const { return bn; }
+    // Explicit conversion to BIGNUM* (use get() for cleaner code)
+    explicit operator BIGNUM*() { return bn; }
+    explicit operator const BIGNUM*() const { return bn; }
 
     CBigNum(int8_t n)  { init(); if (n >= 0) setuint32(n); else setint64(n); }
     CBigNum(int16_t n) { init(); if (n >= 0) setuint32(n); else setint64(n); }
