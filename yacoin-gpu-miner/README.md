@@ -1,29 +1,33 @@
-# YaCoin GPU Miner
+# Scrypt Coin GPU Miner
 
-A modern GPU miner for YaCoin's Scrypt-Jane (ChaCha20/8) algorithm with variable N-factor support.
+GPU miner for Scrypt Coin's AdaptivePow algorithm.
 
 ## Features
 
-- **CUDA support** for NVIDIA GPUs (RTX 20/30/40 series)
-- **OpenCL support** for AMD GPUs (RX 5000/6000/7000 series)
+- **CUDA support** for NVIDIA GPUs (RTX 20/30/40/50 series)
+- **OpenCL support** for AMD GPUs (RX 5000/6000/7000/9000 series)
 - **Stratum protocol** for pool mining
 - **Solo mining** direct to node
-- **Auto N-factor detection** from network
+- **Auto DAG generation** based on current epoch
 - **Multi-GPU support**
 
-## Algorithm
+## Algorithm: AdaptivePow
 
-YaCoin uses Scrypt-Jane with:
-- Mixing function: ChaCha20/8
-- Variable N-factor (increases over time)
-- r = 1, p = 1
-- Memory per thread: `(N + 2) * 128` bytes where `N = 2^(Nfactor+1)`
+AdaptivePow combines:
+- **Shared DAG** (like Ethash) - GPU-friendly, thousands of threads
+- **Random execution** (like KawPow) - ASIC-resistant
+- **Time-based memory growth** (like YaCoin N-factor) - Future-proof
 
-### Current N-factor
+### DAG Size Schedule
 
-As of 2026, N-factor is approximately 19-20, meaning:
-- N = 2^20 to 2^21 = 1M to 2M iterations
-- Memory per thread: ~128MB to ~256MB
+| Year | DAG Size | Min GPU VRAM |
+|------|----------|--------------|
+| 0    | 1 GB     | 2 GB         |
+| 2    | 2 GB     | 4 GB         |
+| 4    | 4 GB     | 6 GB         |
+| 6    | 6 GB     | 8 GB         |
+
+DAG doubles every 4 epochs (~2 years).
 
 ## Building
 
@@ -32,65 +36,79 @@ As of 2026, N-factor is approximately 19-20, meaning:
 **Windows:**
 - Visual Studio 2022
 - CUDA Toolkit 12.x (for NVIDIA)
-- AMD ROCm or AMD APP SDK (for AMD)
+- AMD ROCm or OpenCL SDK (for AMD)
 
 **Linux:**
-- GCC 11+
-- CUDA Toolkit 12.x
-- OpenCL headers and drivers
+```bash
+sudo apt-get install build-essential cmake libssl-dev
+# For NVIDIA: Install CUDA Toolkit
+# For AMD: Install ROCm or AMDGPU-PRO drivers
+```
 
 ### Compile
 
 ```bash
-# NVIDIA (CUDA)
 mkdir build && cd build
+
+# NVIDIA (CUDA)
 cmake .. -DWITH_CUDA=ON
 make -j$(nproc)
 
 # AMD (OpenCL)
-mkdir build && cd build
 cmake .. -DWITH_OPENCL=ON
 make -j$(nproc)
 ```
 
 ## Usage
 
-### Pool Mining (Stratum)
+### Solo Mining (to your own node)
+
 ```bash
-./yacminer -o stratum+tcp://pool.example.com:3333 -u wallet_address -p x
+./scrypt-miner --solo \
+  -o http://127.0.0.1:9332 \
+  -u scryptrpc \
+  -p yourpassword \
+  --address SYourWalletAddress
 ```
 
-### Solo Mining
+### Pool Mining
+
 ```bash
-./yacminer --solo -o http://127.0.0.1:7688 -u rpcuser -p rpcpassword
+./scrypt-miner \
+  -o stratum+tcp://pool.scrypt.org:3333 \
+  -u SYourWalletAddress \
+  -p x
 ```
 
 ### Options
+
 ```
 -d, --device      GPU device ID(s) to use (e.g., 0,1,2)
 -i, --intensity   Mining intensity (8-25, default: auto)
--o, --url         Pool/node URL
--u, --user        Username/wallet
+-o, --url         Pool or node URL
+-u, --user        RPC username or wallet address
 -p, --pass        Password
 --solo            Solo mining mode
---benchmark       Run benchmark
+--address         Payout address for solo mining
+--benchmark       Run hashrate benchmark
+--list-devices    Show available GPUs
 ```
 
-## Architecture
+## Expected Hashrates
 
-```
-src/
-├── core/           # Common code
-│   ├── miner.cpp   # Main mining loop
-│   ├── stratum.cpp # Stratum protocol
-│   └── util.cpp    # Utilities
-├── cuda/           # NVIDIA implementation
-│   ├── scrypt_jane.cu
-│   └── chacha.cu
-└── opencl/         # AMD implementation
-    ├── scrypt_jane.cl
-    └── chacha.cl
-```
+| GPU | VRAM | Hashrate |
+|-----|------|----------|
+| RTX 4090 | 24 GB | ~50 MH/s |
+| RTX 4080 | 16 GB | ~35 MH/s |
+| RTX 3080 | 10 GB | ~30 MH/s |
+| RX 7900 XTX | 24 GB | ~45 MH/s |
+| RX 6800 XT | 16 GB | ~28 MH/s |
+
+## Troubleshooting
+
+- **"DAG generation failed"** - Not enough GPU VRAM
+- **"Connection refused"** - Node not running or wrong RPC credentials
+- **"GPU not found"** - Install CUDA/OpenCL drivers
 
 ## License
 
