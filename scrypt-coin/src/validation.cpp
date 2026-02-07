@@ -54,7 +54,10 @@
 
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/algorithm/string/join.hpp>
+#include <boost/bind/bind.hpp>
 #include <boost/thread.hpp>
+
+using namespace boost::placeholders;
 
 #if defined(NDEBUG)
 # error "Yacoin cannot be compiled without assertions."

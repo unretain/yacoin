@@ -6,6 +6,8 @@
 
 #include "chainparams.h"
 
+#include "consensus/merkle.h"
+#include "primitives/transaction.h"
 #include "tinyformat.h"
 #include "util.h"
 #include "utilstrencodings.h"
@@ -80,8 +82,7 @@ public:
         strNetworkID = "main";
 
         // AdaptivePow consensus parameters
-        consensus.powLimit = arith_uint256().SetCompact(0x1e0fffff).IsNull() ?
-            arith_uint256(~uint256S("0") >> 20) : arith_uint256(~uint256S("0") >> 20);
+        consensus.powLimit = UintToArith256(uint256S("00000fffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"));
         consensus.nPowTargetTimespan = 60 * 60;  // 1 hour
         consensus.nPowTargetSpacing = 60;  // 1 minute blocks
         consensus.fPowAllowMinDifficultyBlocks = false;
@@ -179,7 +180,7 @@ public:
     CTestNetParams() {
         strNetworkID = "test";
 
-        consensus.powLimit = arith_uint256(~uint256S("0") >> 16);
+        consensus.powLimit = UintToArith256(uint256S("0000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"));
         consensus.nPowTargetTimespan = 60 * 60;
         consensus.nPowTargetSpacing = 60;
         consensus.fPowAllowMinDifficultyBlocks = true;
@@ -260,7 +261,7 @@ public:
     CRegTestParams() {
         strNetworkID = "regtest";
 
-        consensus.powLimit = arith_uint256(~uint256S("0") >> 1);
+        consensus.powLimit = UintToArith256(uint256S("7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"));
         consensus.nPowTargetTimespan = 60 * 60;
         consensus.nPowTargetSpacing = 60;
         consensus.fPowAllowMinDifficultyBlocks = true;
