@@ -6,7 +6,6 @@
 
 #include "chainparams.h"
 
-#include "consensus/merkle.h"
 #include "primitives/transaction.h"
 #include "tinyformat.h"
 #include "util.h"
@@ -56,9 +55,9 @@ static CBlock CreateGenesisBlock(const char* pszTimestamp, uint32_t nTime, uint3
     genesis.nBits    = nBits;
     genesis.nNonce   = nNonce;
     genesis.nVersion = nVersion;
-    genesis.vtx.push_back(MakeTransactionRef(std::move(txNew)));
+    genesis.vtx.push_back(CTransaction(txNew));
     genesis.hashPrevBlock.SetNull();
-    genesis.hashMerkleRoot = BlockMerkleRoot(genesis);
+    genesis.hashMerkleRoot = genesis.BuildMerkleTree();
     return genesis;
 }
 
@@ -167,8 +166,6 @@ public:
             0              // Tx rate
         };
 
-        // Token parameters (inherited from YaCoin)
-        nTokenActivationHeight = 0;  // Tokens enabled from genesis
     }
 };
 
@@ -248,8 +245,6 @@ public:
             0,
             0
         };
-
-        nTokenActivationHeight = 0;
     }
 };
 
@@ -327,8 +322,6 @@ public:
             0,
             0
         };
-
-        nTokenActivationHeight = 0;
     }
 };
 
