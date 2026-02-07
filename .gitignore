@@ -1,0 +1,45 @@
+# Dependencies
+node_modules/
+package-lock.json
+
+# Build outputs
+*.o
+*.a
+*.so
+*.exe
+*.dll
+scrypt-coin/src/scryptd
+scrypt-coin/src/scrypt-cli
+scrypt-coin/src/scrypt-tx
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+debug.log
+
+# Data
+.scrypt/
+*.dat
+
+# Uploads
+uploads/
+
+# Environment
+.env
+.env.local
+
+# Build artifacts
+scrypt-coin/autom4te.cache/
+scrypt-coin/src/.deps/
+scrypt-coin/src/.libs/
+scrypt-coin/config.log
+scrypt-coin/config.status

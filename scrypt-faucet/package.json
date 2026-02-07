@@ -1,0 +1,19 @@
+{
+  "name": "scrypt-faucet",
+  "version": "1.0.0",
+  "description": "SCRYPT Testnet Faucet - Get free testnet coins",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "axios": "^1.6.0",
+    "cors": "^2.8.5",
+    "express-rate-limit": "^7.1.5"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  }
+}

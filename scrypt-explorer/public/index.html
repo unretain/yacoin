@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scrypt Explorer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    <style>
+        [v-cloak] { display: none; }
+        .gradient-bg { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+    </style>
+</head>
+<body class="bg-gray-900 text-white min-h-screen">
+    <div id="app" v-cloak>
+        <!-- Header -->
+        <header class="gradient-bg shadow-lg">
+            <div class="container mx-auto px-4 py-6">
+                <div class="flex justify-between items-center">
+                    <h1 class="text-3xl font-bold cursor-pointer" @click="goHome">
+                        ⛏️ Scrypt Explorer
+                    </h1>
+                    <div class="flex items-center space-x-4">
+                        <div class="bg-white/20 rounded-lg px-4 py-2">
+                            <span class="text-sm opacity-75">Block Height</span>
+                            <span class="font-bold ml-2">{{ info.blocks?.toLocaleString() || '---' }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Search -->
+                <div class="mt-4">
+                    <div class="relative">
+                        <input
+                            v-model="searchQuery"
+                            @keyup.enter="search"
+                            type="text"
+                            placeholder="Search by block, transaction, address, or token..."
+                            class="w-full px-4 py-3 rounded-lg bg-white/10 border border-white/20 focus:outline-none focus:border-white/50 placeholder-white/50"
+                        >
+                        <button @click="search" class="absolute right-2 top-2 px-4 py-1 bg-white/20 rounded hover:bg-white/30">
+                            Search
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Stats Bar -->
+        <div class="bg-gray-800 border-b border-gray-700">
+            <div class="container mx-auto px-4 py-4">
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div class="text-center">
+                        <div class="text-gray-400 text-sm">Difficulty</div>
+                        <div class="font-bold">{{ formatNumber(info.difficulty) }}</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-gray-400 text-sm">Hashrate</div>
+                        <div class="font-bold">{{ formatHashrate(info.hashrate) }}</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-gray-400 text-sm">Connections</div>
+                        <div class="font-bold">{{ info.connections || 0 }}</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-gray-400 text-sm">Network</div>
+                        <div class="font-bold capitalize">{{ info.chain || 'main' }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <main class="container mx-auto px-4 py-8">
+            <!-- Home View -->
+            <div v-if="view === 'home'" class="grid md:grid-cols-2 gap-8">
+                <!-- Latest Blocks -->
+                <div class="bg-gray-800 rounded-lg p-6">
+                    <h2 class="text-xl font-bold mb-4">Latest Blocks</h2>
+                    <div class="space-y-3">
+                        <div v-for="block in blocks" :key="block.height"
+                             @click="viewBlock(block.height)"
+                             class="flex justify-between items-center p-3 bg-gray-700 rounded hover:bg-gray-600 cursor-pointer">
+                            <div>
+                                <div class="font-bold text-purple-400">#{{ block.height.toLocaleString() }}</div>
+                                <div class="text-sm text-gray-400">{{ block.txCount }} txs</div>
+                            </div>
+                            <div class="text-right">
+                                <div class="text-sm">{{ formatTime(block.time) }}</div>
+                                <div class="text-xs text-gray-400">{{ formatBytes(block.size) }}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Latest Tokens -->
+                <div class="bg-gray-800 rounded-lg p-6">
+                    <h2 class="text-xl font-bold mb-4">🪙 Tokens (Memecoins)</h2>
+                    <div v-if="tokens.length" class="space-y-3">
+                        <div v-for="token in tokens.slice(0, 10)" :key="token.name"
+                             @click="viewToken(token.name)"
+                             class="flex justify-between items-center p-3 bg-gray-700 rounded hover:bg-gray-600 cursor-pointer">
+                            <div>
+                                <div class="font-bold text-yellow-400">{{ token.name }}</div>
+                                <div class="text-sm text-gray-400">
+                                    {{ token.hasIPFS ? '🖼️ Has Image' : '' }}
+                                    {{ token.reissuable ? '♻️' : '🔒' }}
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <div>{{ formatNumber(token.amount) }}</div>
+                                <div class="text-xs text-gray-400">Supply</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div v-else class="text-gray-400 text-center py-8">
+                        No tokens created yet.<br>
+                        <a href="/launchpad" class="text-purple-400 hover:underline">Create your memecoin!</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Block View -->
+            <div v-if="view === 'block'" class="bg-gray-800 rounded-lg p-6">
+                <h2 class="text-xl font-bold mb-4">Block #{{ block.height?.toLocaleString() }}</h2>
+                <div class="grid md:grid-cols-2 gap-4 mb-6">
+                    <div>
+                        <div class="text-gray-400">Hash</div>
+                        <div class="font-mono text-sm break-all">{{ block.hash }}</div>
+                    </div>
+                    <div>
+                        <div class="text-gray-400">Time</div>
+                        <div>{{ new Date(block.time * 1000).toLocaleString() }}</div>
+                    </div>
+                    <div>
+                        <div class="text-gray-400">Transactions</div>
+                        <div>{{ block.txCount }}</div>
+                    </div>
+                    <div>
+                        <div class="text-gray-400">Size</div>
+                        <div>{{ formatBytes(block.size) }}</div>
+                    </div>
+                    <div>
+                        <div class="text-gray-400">Difficulty</div>
+                        <div>{{ formatNumber(block.difficulty) }}</div>
+                    </div>
+                    <div>
+                        <div class="text-gray-400">Nonce</div>
+                        <div>{{ block.nonce }}</div>
+                    </div>
+                </div>
+
+                <h3 class="font-bold mb-2">Transactions</h3>
+                <div class="space-y-2">
+                    <div v-for="tx in block.transactions" :key="tx.txid"
+                         @click="viewTx(tx.txid)"
+                         class="p-3 bg-gray-700 rounded hover:bg-gray-600 cursor-pointer">
+                        <div class="font-mono text-sm text-purple-400 truncate">{{ tx.txid }}</div>
+                        <div class="text-sm text-gray-400">
+                            {{ tx.vout.length }} outputs,
+                            {{ tx.vout.reduce((a, b) => a + b.value, 0).toFixed(8) }} SCRYPT
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Transaction View -->
+            <div v-if="view === 'tx'" class="bg-gray-800 rounded-lg p-6">
+                <h2 class="text-xl font-bold mb-4">Transaction</h2>
+                <div class="mb-4">
+                    <div class="text-gray-400">TXID</div>
+                    <div class="font-mono text-sm break-all text-purple-400">{{ tx.txid }}</div>
+                </div>
+                <div class="grid md:grid-cols-3 gap-4 mb-6">
+                    <div>
+                        <div class="text-gray-400">Confirmations</div>
+                        <div class="text-green-400">{{ tx.confirmations }}</div>
+                    </div>
+                    <div>
+                        <div class="text-gray-400">Block</div>
+                        <div class="cursor-pointer text-purple-400" @click="viewBlock(tx.blockHeight)">
+                            #{{ tx.blockHeight?.toLocaleString() }}
+                        </div>
+                    </div>
+                    <div>
+                        <div class="text-gray-400">Size</div>
+                        <div>{{ formatBytes(tx.size) }}</div>
+                    </div>
+                </div>
+
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div>
+                        <h3 class="font-bold mb-2">Inputs</h3>
+                        <div v-for="inp in tx.inputs" :key="inp.txid" class="p-2 bg-gray-700 rounded mb-2">
+                            <div v-if="inp.coinbase" class="text-yellow-400">Coinbase (Mining Reward)</div>
+                            <div v-else class="font-mono text-xs truncate">{{ inp.txid }}:{{ inp.vout }}</div>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="font-bold mb-2">Outputs</h3>
+                        <div v-for="out in tx.outputs" :key="out.n" class="p-2 bg-gray-700 rounded mb-2">
+                            <div class="flex justify-between">
+                                <span class="font-mono text-sm truncate cursor-pointer text-purple-400"
+                                      @click="viewAddress(out.address)">{{ out.address }}</span>
+                                <span class="font-bold">{{ out.value }} SCRYPT</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Address View -->
+            <div v-if="view === 'address'" class="bg-gray-800 rounded-lg p-6">
+                <h2 class="text-xl font-bold mb-4">Address</h2>
+                <div class="font-mono text-lg text-purple-400 break-all mb-6">{{ address.address }}</div>
+
+                <div class="grid md:grid-cols-3 gap-4 mb-6">
+                    <div class="bg-gray-700 rounded p-4 text-center">
+                        <div class="text-2xl font-bold">{{ address.balance?.toFixed(8) }}</div>
+                        <div class="text-gray-400">Balance (SCRYPT)</div>
+                    </div>
+                    <div class="bg-gray-700 rounded p-4 text-center">
+                        <div class="text-2xl font-bold text-green-400">{{ address.received?.toFixed(8) }}</div>
+                        <div class="text-gray-400">Total Received</div>
+                    </div>
+                    <div class="bg-gray-700 rounded p-4 text-center">
+                        <div class="text-2xl font-bold text-red-400">{{ address.sent?.toFixed(8) }}</div>
+                        <div class="text-gray-400">Total Sent</div>
+                    </div>
+                </div>
+
+                <div v-if="address.tokens?.length" class="mb-6">
+                    <h3 class="font-bold mb-2">Token Balances</h3>
+                    <div class="flex flex-wrap gap-2">
+                        <div v-for="(bal, name) in address.tokens" :key="name"
+                             class="bg-yellow-600 px-3 py-1 rounded-full text-sm cursor-pointer"
+                             @click="viewToken(name)">
+                            {{ name }}: {{ bal }}
+                        </div>
+                    </div>
+                </div>
+
+                <h3 class="font-bold mb-2">Recent Transactions</h3>
+                <div class="space-y-2">
+                    <div v-for="txid in address.recentTxs" :key="txid"
+                         @click="viewTx(txid)"
+                         class="p-2 bg-gray-700 rounded hover:bg-gray-600 cursor-pointer font-mono text-sm truncate text-purple-400">
+                        {{ txid }}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Token View -->
+            <div v-if="view === 'token'" class="bg-gray-800 rounded-lg p-6">
+                <h2 class="text-xl font-bold mb-4">🪙 {{ token.name }}</h2>
+
+                <div v-if="token.ipfsHash" class="mb-4">
+                    <img :src="'https://ipfs.io/ipfs/' + token.ipfsHash"
+                         class="w-32 h-32 rounded-lg object-cover"
+                         @error="$event.target.style.display='none'">
+                </div>
+
+                <div class="grid md:grid-cols-3 gap-4 mb-6">
+                    <div class="bg-gray-700 rounded p-4">
+                        <div class="text-gray-400">Total Supply</div>
+                        <div class="text-xl font-bold">{{ formatNumber(token.amount) }}</div>
+                    </div>
+                    <div class="bg-gray-700 rounded p-4">
+                        <div class="text-gray-400">Decimals</div>
+                        <div class="text-xl font-bold">{{ token.units }}</div>
+                    </div>
+                    <div class="bg-gray-700 rounded p-4">
+                        <div class="text-gray-400">Holders</div>
+                        <div class="text-xl font-bold">{{ token.holderCount }}</div>
+                    </div>
+                </div>
+
+                <div class="flex gap-2 mb-6">
+                    <span v-if="token.reissuable" class="bg-green-600 px-3 py-1 rounded-full text-sm">♻️ Reissuable</span>
+                    <span v-else class="bg-red-600 px-3 py-1 rounded-full text-sm">🔒 Fixed Supply</span>
+                    <span v-if="token.hasIPFS" class="bg-blue-600 px-3 py-1 rounded-full text-sm">🖼️ Has Metadata</span>
+                </div>
+
+                <h3 class="font-bold mb-2">Top Holders</h3>
+                <div class="space-y-2">
+                    <div v-for="(holder, i) in token.holders?.slice(0, 10)" :key="holder.address"
+                         class="flex justify-between p-2 bg-gray-700 rounded">
+                        <span>
+                            <span class="text-gray-400">#{{ i + 1 }}</span>
+                            <span class="font-mono text-sm ml-2 cursor-pointer text-purple-400"
+                                  @click="viewAddress(holder.address)">{{ holder.address }}</span>
+                        </span>
+                        <span class="font-bold">{{ formatNumber(holder.balance) }}</span>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="bg-gray-800 border-t border-gray-700 mt-8">
+            <div class="container mx-auto px-4 py-6 text-center text-gray-400">
+                <p>Scrypt Coin Explorer | Powered by AdaptivePow</p>
+                <p class="text-sm mt-2">
+                    <a href="/launchpad" class="text-purple-400 hover:underline">Create Memecoin</a> |
+                    <a href="https://github.com/scrypt" class="text-purple-400 hover:underline">GitHub</a>
+                </p>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+    const { createApp } = Vue;
+
+    createApp({
+        data() {
+            return {
+                view: 'home',
+                searchQuery: '',
+                info: {},
+                blocks: [],
+                tokens: [],
+                block: {},
+                tx: {},
+                address: {},
+                token: {}
+            };
+        },
+        async mounted() {
+            await this.loadInfo();
+            await this.loadBlocks();
+            await this.loadTokens();
+
+            // WebSocket for live updates
+            const socket = io();
+            socket.on('newBlock', (data) => {
+                this.info.blocks = data.height;
+                this.loadBlocks();
+            });
+        },
+        methods: {
+            async loadInfo() {
+                try {
+                    const res = await fetch('/api/info');
+                    this.info = await res.json();
+                } catch (e) {
+                    console.error('Failed to load info:', e);
+                }
+            },
+            async loadBlocks() {
+                try {
+                    const res = await fetch('/api/blocks?limit=10');
+                    this.blocks = await res.json();
+                } catch (e) {
+                    console.error('Failed to load blocks:', e);
+                }
+            },
+            async loadTokens() {
+                try {
+                    const res = await fetch('/api/tokens');
+                    this.tokens = await res.json();
+                } catch (e) {
+                    console.error('Failed to load tokens:', e);
+                }
+            },
+            async search() {
+                if (!this.searchQuery.trim()) return;
+                try {
+                    const res = await fetch(`/api/search/${encodeURIComponent(this.searchQuery)}`);
+                    const result = await res.json();
+
+                    if (result.type === 'block') this.viewBlock(result.id);
+                    else if (result.type === 'tx') this.viewTx(result.id);
+                    else if (result.type === 'address') this.viewAddress(result.id);
+                    else if (result.type === 'token') this.viewToken(result.id);
+                    else alert('Not found');
+                } catch (e) {
+                    alert('Search failed');
+                }
+            },
+            async viewBlock(id) {
+                const res = await fetch(`/api/block/${id}`);
+                this.block = await res.json();
+                this.view = 'block';
+                window.scrollTo(0, 0);
+            },
+            async viewTx(txid) {
+                const res = await fetch(`/api/tx/${txid}`);
+                this.tx = await res.json();
+                this.view = 'tx';
+                window.scrollTo(0, 0);
+            },
+            async viewAddress(addr) {
+                const res = await fetch(`/api/address/${addr}`);
+                this.address = await res.json();
+                this.view = 'address';
+                window.scrollTo(0, 0);
+            },
+            async viewToken(name) {
+                const res = await fetch(`/api/token/${name}`);
+                this.token = await res.json();
+                this.view = 'token';
+                window.scrollTo(0, 0);
+            },
+            goHome() {
+                this.view = 'home';
+                this.searchQuery = '';
+            },
+            formatTime(timestamp) {
+                const diff = Date.now() / 1000 - timestamp;
+                if (diff < 60) return Math.floor(diff) + 's ago';
+                if (diff < 3600) return Math.floor(diff / 60) + 'm ago';
+                if (diff < 86400) return Math.floor(diff / 3600) + 'h ago';
+                return Math.floor(diff / 86400) + 'd ago';
+            },
+            formatBytes(bytes) {
+                if (bytes < 1024) return bytes + ' B';
+                if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+                return (bytes / 1024 / 1024).toFixed(1) + ' MB';
+            },
+            formatNumber(n) {
+                if (!n) return '0';
+                if (n >= 1e9) return (n / 1e9).toFixed(2) + 'B';
+                if (n >= 1e6) return (n / 1e6).toFixed(2) + 'M';
+                if (n >= 1e3) return (n / 1e3).toFixed(2) + 'K';
+                return n.toLocaleString();
+            },
+            formatHashrate(h) {
+                if (!h) return '0 H/s';
+                if (h >= 1e12) return (h / 1e12).toFixed(2) + ' TH/s';
+                if (h >= 1e9) return (h / 1e9).toFixed(2) + ' GH/s';
+                if (h >= 1e6) return (h / 1e6).toFixed(2) + ' MH/s';
+                if (h >= 1e3) return (h / 1e3).toFixed(2) + ' KH/s';
+                return h.toFixed(2) + ' H/s';
+            }
+        }
+    }).mount('#app');
+    </script>
+</body>
+</html>

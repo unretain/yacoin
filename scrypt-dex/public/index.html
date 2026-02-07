@@ -1,0 +1,1092 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scrypt DEX - Trade Tokens</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.prod.js"></script>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <style>
+        :root {
+            --primary: #ff6b9d;
+            --primary-dark: #e85a8a;
+            --secondary: #7b61ff;
+            --success: #00d395;
+            --warning: #ffb74d;
+            --danger: #ff5252;
+            --bg-dark: #0d0d0d;
+            --bg-card: #1a1a1a;
+            --bg-input: #2d2d2d;
+            --text: #ffffff;
+            --text-muted: #888888;
+            --border: #333333;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-dark);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Header */
+        header {
+            padding: 16px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.4rem;
+            font-weight: 700;
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .nav-tabs {
+            display: flex;
+            gap: 8px;
+            background: var(--bg-card);
+            padding: 4px;
+            border-radius: 12px;
+        }
+
+        .nav-tab {
+            padding: 10px 24px;
+            border: none;
+            background: transparent;
+            color: var(--text-muted);
+            font-weight: 500;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+
+        .nav-tab:hover {
+            color: var(--text);
+        }
+
+        .nav-tab.active {
+            background: var(--bg-input);
+            color: var(--text);
+        }
+
+        .wallet-btn {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.3s;
+        }
+
+        .wallet-btn:hover {
+            opacity: 0.9;
+        }
+
+        /* Main Layout */
+        .main-layout {
+            display: grid;
+            grid-template-columns: 1fr 420px 1fr;
+            gap: 24px;
+            padding: 40px 0;
+            min-height: calc(100vh - 100px);
+        }
+
+        /* Swap Card */
+        .swap-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 24px;
+            justify-self: center;
+        }
+
+        .swap-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .swap-header h2 {
+            font-size: 1.1rem;
+        }
+
+        .settings-btn {
+            background: var(--bg-input);
+            border: none;
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 1.2rem;
+        }
+
+        .token-input-box {
+            background: var(--bg-input);
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 4px;
+        }
+
+        .token-input-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .token-input-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .amount-input {
+            background: transparent;
+            border: none;
+            font-size: 2rem;
+            font-weight: 500;
+            color: var(--text);
+            width: 60%;
+            outline: none;
+        }
+
+        .amount-input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .token-select {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--bg-card);
+            padding: 8px 12px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .token-select:hover {
+            background: var(--border);
+        }
+
+        .token-icon {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 0.8rem;
+        }
+
+        .token-name {
+            font-weight: 600;
+        }
+
+        .swap-arrow {
+            display: flex;
+            justify-content: center;
+            margin: -8px 0;
+            position: relative;
+            z-index: 1;
+        }
+
+        .swap-arrow-btn {
+            background: var(--bg-card);
+            border: 4px solid var(--bg-dark);
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.3s;
+        }
+
+        .swap-arrow-btn:hover {
+            transform: rotate(180deg);
+        }
+
+        .swap-details {
+            margin-top: 16px;
+            padding: 12px;
+            background: var(--bg-input);
+            border-radius: 12px;
+            font-size: 0.9rem;
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 0;
+            color: var(--text-muted);
+        }
+
+        .detail-row span:last-child {
+            color: var(--text);
+        }
+
+        .swap-btn {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border: none;
+            border-radius: 16px;
+            color: white;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 16px;
+            transition: opacity 0.3s;
+        }
+
+        .swap-btn:hover:not(:disabled) {
+            opacity: 0.9;
+        }
+
+        .swap-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Pool List */
+        .pool-list {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            overflow: hidden;
+        }
+
+        .pool-list-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+            font-weight: 600;
+        }
+
+        .pool-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .pool-item:hover {
+            background: var(--bg-input);
+        }
+
+        .pool-item:last-child {
+            border-bottom: none;
+        }
+
+        .pool-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .pool-pair {
+            display: flex;
+        }
+
+        .pool-pair .token-icon:nth-child(2) {
+            margin-left: -8px;
+        }
+
+        .pool-name h4 {
+            font-size: 0.95rem;
+        }
+
+        .pool-name p {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .pool-stats {
+            text-align: right;
+        }
+
+        .pool-tvl {
+            font-weight: 600;
+        }
+
+        .pool-volume {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        /* Trade History */
+        .trade-history {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            overflow: hidden;
+        }
+
+        .trade-history-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .trade-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 20px;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.9rem;
+        }
+
+        .trade-item:last-child {
+            border-bottom: none;
+        }
+
+        .trade-type {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .trade-type.buy { color: var(--success); }
+        .trade-type.sell { color: var(--danger); }
+
+        .trade-amount {
+            text-align: right;
+        }
+
+        .trade-time {
+            color: var(--text-muted);
+            font-size: 0.8rem;
+        }
+
+        /* Liquidity Tab */
+        .liquidity-form {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 24px;
+        }
+
+        .lp-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .lp-stat {
+            background: var(--bg-input);
+            padding: 16px;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .lp-stat-value {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--secondary);
+        }
+
+        .lp-stat-label {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        /* Token Select Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            width: 400px;
+            max-height: 70vh;
+            overflow: hidden;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        .modal-search {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .modal-search input {
+            width: 100%;
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 12px 16px;
+            color: var(--text);
+            font-size: 1rem;
+        }
+
+        .modal-search input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .token-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .token-list-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 20px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .token-list-item:hover {
+            background: var(--bg-input);
+        }
+
+        .token-list-item .token-icon {
+            width: 36px;
+            height: 36px;
+        }
+
+        .token-list-info h4 {
+            font-size: 1rem;
+        }
+
+        .token-list-info p {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        /* Price Impact Warning */
+        .price-impact-warning {
+            background: rgba(255, 82, 82, 0.1);
+            border: 1px solid var(--danger);
+            border-radius: 12px;
+            padding: 12px;
+            margin-top: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--danger);
+            font-size: 0.9rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .main-layout {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
+            .swap-card {
+                width: 100%;
+                max-width: 420px;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .header-content {
+                flex-wrap: wrap;
+                gap: 12px;
+            }
+
+            .nav-tabs {
+                order: 3;
+                width: 100%;
+                justify-content: center;
+            }
+
+            .swap-card {
+                max-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <header>
+            <div class="container">
+                <div class="header-content">
+                    <div class="logo">
+                        <div class="logo-icon">S</div>
+                        <span>Scrypt DEX</span>
+                    </div>
+                    <div class="nav-tabs">
+                        <button class="nav-tab" :class="{ active: tab === 'swap' }" @click="tab = 'swap'">Swap</button>
+                        <button class="nav-tab" :class="{ active: tab === 'pool' }" @click="tab = 'pool'">Pool</button>
+                    </div>
+                    <button class="wallet-btn" @click="connectWallet">
+                        {{ walletConnected ? shortenAddress(walletAddress) : 'Connect Wallet' }}
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <main class="container">
+            <div class="main-layout">
+                <!-- Left: Pool List -->
+                <div class="pool-list" v-if="tab === 'swap'">
+                    <div class="pool-list-header">Top Pools</div>
+                    <div class="pool-item" v-for="pool in pools" :key="pool.token" @click="selectPool(pool)">
+                        <div class="pool-info">
+                            <div class="pool-pair">
+                                <div class="token-icon">{{ pool.token.charAt(0) }}</div>
+                                <div class="token-icon" style="background: var(--success)">S</div>
+                            </div>
+                            <div class="pool-name">
+                                <h4>{{ pool.token }}/SCRY</h4>
+                                <p>{{ formatNumber(pool.reserveToken) }} / {{ formatNumber(pool.reserveSCRY) }}</p>
+                            </div>
+                        </div>
+                        <div class="pool-stats">
+                            <div class="pool-tvl">{{ formatNumber(pool.tvl) }} SCRY</div>
+                            <div class="pool-volume">Vol: {{ formatNumber(pool.volume24h) }}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Center: Swap Card -->
+                <div class="swap-card" v-if="tab === 'swap'">
+                    <div class="swap-header">
+                        <h2>Swap</h2>
+                        <button class="settings-btn">*</button>
+                    </div>
+
+                    <!-- From Token -->
+                    <div class="token-input-box">
+                        <div class="token-input-header">
+                            <span>From</span>
+                            <span>Balance: {{ getBalance(fromToken) }}</span>
+                        </div>
+                        <div class="token-input-row">
+                            <input type="number" class="amount-input" v-model="fromAmount" placeholder="0" @input="calculateOutput">
+                            <div class="token-select" @click="openTokenSelect('from')">
+                                <div class="token-icon">{{ fromToken.charAt(0) }}</div>
+                                <span class="token-name">{{ fromToken }}</span>
+                                <span>v</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Swap Arrow -->
+                    <div class="swap-arrow">
+                        <button class="swap-arrow-btn" @click="swapTokens">
+                            <span>|</span>
+                        </button>
+                    </div>
+
+                    <!-- To Token -->
+                    <div class="token-input-box">
+                        <div class="token-input-header">
+                            <span>To</span>
+                            <span>Balance: {{ getBalance(toToken) }}</span>
+                        </div>
+                        <div class="token-input-row">
+                            <input type="number" class="amount-input" v-model="toAmount" placeholder="0" readonly>
+                            <div class="token-select" @click="openTokenSelect('to')">
+                                <div class="token-icon">{{ toToken.charAt(0) }}</div>
+                                <span class="token-name">{{ toToken }}</span>
+                                <span>v</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Price Impact Warning -->
+                    <div class="price-impact-warning" v-if="priceImpact > 5">
+                        <span>!</span>
+                        <span>High price impact: {{ priceImpact.toFixed(2) }}%</span>
+                    </div>
+
+                    <!-- Swap Details -->
+                    <div class="swap-details" v-if="quote">
+                        <div class="detail-row">
+                            <span>Price</span>
+                            <span>1 {{ fromToken }} = {{ (quote.amountOut / quote.amountIn).toFixed(6) }} {{ toToken }}</span>
+                        </div>
+                        <div class="detail-row">
+                            <span>Price Impact</span>
+                            <span :style="{ color: priceImpact > 3 ? 'var(--warning)' : 'inherit' }">{{ priceImpact.toFixed(2) }}%</span>
+                        </div>
+                        <div class="detail-row">
+                            <span>Fee (0.3%)</span>
+                            <span>{{ quote.fee?.toFixed(6) }} {{ fromToken }}</span>
+                        </div>
+                        <div class="detail-row">
+                            <span>Min. Received</span>
+                            <span>{{ quote.minimumReceived?.toFixed(6) }} {{ toToken }}</span>
+                        </div>
+                    </div>
+
+                    <button class="swap-btn" @click="executeSwap" :disabled="!canSwap">
+                        {{ swapButtonText }}
+                    </button>
+                </div>
+
+                <!-- Liquidity Tab -->
+                <div class="liquidity-form" v-if="tab === 'pool'" style="justify-self: center;">
+                    <div class="swap-header">
+                        <h2>Add Liquidity</h2>
+                    </div>
+
+                    <div class="lp-stats">
+                        <div class="lp-stat">
+                            <div class="lp-stat-value">{{ formatNumber(totalTVL) }}</div>
+                            <div class="lp-stat-label">Total TVL (SCRY)</div>
+                        </div>
+                        <div class="lp-stat">
+                            <div class="lp-stat-value">{{ pools.length }}</div>
+                            <div class="lp-stat-label">Active Pools</div>
+                        </div>
+                    </div>
+
+                    <div class="token-input-box">
+                        <div class="token-input-header">
+                            <span>Token</span>
+                        </div>
+                        <div class="token-input-row">
+                            <input type="number" class="amount-input" v-model="lpTokenAmount" placeholder="0">
+                            <div class="token-select" @click="openTokenSelect('lp')">
+                                <div class="token-icon">{{ lpToken.charAt(0) }}</div>
+                                <span class="token-name">{{ lpToken }}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="token-input-box" style="margin-top: 8px;">
+                        <div class="token-input-header">
+                            <span>SCRY</span>
+                        </div>
+                        <div class="token-input-row">
+                            <input type="number" class="amount-input" v-model="lpScryAmount" placeholder="0">
+                            <div class="token-select">
+                                <div class="token-icon" style="background: var(--success)">S</div>
+                                <span class="token-name">SCRY</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button class="swap-btn" @click="addLiquidity" :disabled="!lpTokenAmount || !lpScryAmount">
+                        Add Liquidity
+                    </button>
+                </div>
+
+                <!-- Right: Trade History -->
+                <div class="trade-history" v-if="tab === 'swap'">
+                    <div class="trade-history-header">
+                        <span>Recent Trades</span>
+                        <span class="trade-time">Live</span>
+                    </div>
+                    <div class="trade-item" v-for="trade in trades" :key="trade.id">
+                        <div class="trade-type" :class="trade.tokenOut === 'SCRYPT' ? 'sell' : 'buy'">
+                            <span>{{ trade.tokenOut === 'SCRYPT' ? 'SELL' : 'BUY' }}</span>
+                            <span>{{ trade.tokenIn === 'SCRYPT' ? trade.tokenOut : trade.tokenIn }}</span>
+                        </div>
+                        <div class="trade-amount">
+                            <div>{{ formatNumber(trade.amountIn) }} {{ trade.tokenIn }}</div>
+                            <div class="trade-time">{{ formatTime(trade.timestamp) }}</div>
+                        </div>
+                    </div>
+                    <div v-if="trades.length === 0" style="padding: 20px; text-align: center; color: var(--text-muted);">
+                        No trades yet
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Token Select Modal -->
+        <div class="modal-overlay" v-if="showTokenModal" @click.self="showTokenModal = false">
+            <div class="modal">
+                <div class="modal-header">
+                    <h3>Select Token</h3>
+                    <button class="modal-close" @click="showTokenModal = false">&times;</button>
+                </div>
+                <div class="modal-search">
+                    <input type="text" v-model="tokenSearch" placeholder="Search token...">
+                </div>
+                <div class="token-list">
+                    <div class="token-list-item" @click="selectToken('SCRYPT')">
+                        <div class="token-icon" style="background: var(--success)">S</div>
+                        <div class="token-list-info">
+                            <h4>SCRY</h4>
+                            <p>Scrypt Coin</p>
+                        </div>
+                    </div>
+                    <div class="token-list-item" v-for="pool in filteredPools" :key="pool.token" @click="selectToken(pool.token)">
+                        <div class="token-icon">{{ pool.token.charAt(0) }}</div>
+                        <div class="token-list-info">
+                            <h4>{{ pool.token }}</h4>
+                            <p>Price: {{ (pool.reserveSCRY / pool.reserveToken).toFixed(8) }} SCRY</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const { createApp, ref, computed, onMounted, onUnmounted, watch } = Vue;
+
+        createApp({
+            setup() {
+                const tab = ref('swap');
+                const walletConnected = ref(false);
+                const walletAddress = ref('');
+                const pools = ref([]);
+                const trades = ref([]);
+
+                // Swap state
+                const fromToken = ref('SCRYPT');
+                const toToken = ref('PEPE');
+                const fromAmount = ref('');
+                const toAmount = ref('');
+                const quote = ref(null);
+                const priceImpact = ref(0);
+
+                // Liquidity state
+                const lpToken = ref('PEPE');
+                const lpTokenAmount = ref('');
+                const lpScryAmount = ref('');
+
+                // Modal state
+                const showTokenModal = ref(false);
+                const tokenSelectType = ref('from');
+                const tokenSearch = ref('');
+
+                let socket = null;
+
+                const totalTVL = computed(() => {
+                    return pools.value.reduce((sum, p) => sum + (p.tvl || 0), 0);
+                });
+
+                const filteredPools = computed(() => {
+                    const search = tokenSearch.value.toLowerCase();
+                    return pools.value.filter(p =>
+                        p.token.toLowerCase().includes(search)
+                    );
+                });
+
+                const canSwap = computed(() => {
+                    return walletConnected.value &&
+                           fromAmount.value > 0 &&
+                           toAmount.value > 0 &&
+                           fromToken.value !== toToken.value;
+                });
+
+                const swapButtonText = computed(() => {
+                    if (!walletConnected.value) return 'Connect Wallet';
+                    if (!fromAmount.value) return 'Enter Amount';
+                    if (fromToken.value === toToken.value) return 'Select Different Tokens';
+                    if (priceImpact.value > 15) return 'Price Impact Too High';
+                    return 'Swap';
+                });
+
+                const loadPools = async () => {
+                    try {
+                        const res = await fetch('/api/pools');
+                        pools.value = await res.json();
+                    } catch (e) {
+                        console.error('Failed to load pools:', e);
+                    }
+                };
+
+                const loadTrades = async () => {
+                    try {
+                        const res = await fetch('/api/trades');
+                        trades.value = await res.json();
+                    } catch (e) {
+                        console.error('Failed to load trades:', e);
+                    }
+                };
+
+                const calculateOutput = async () => {
+                    if (!fromAmount.value || fromAmount.value <= 0) {
+                        toAmount.value = '';
+                        quote.value = null;
+                        return;
+                    }
+
+                    try {
+                        const res = await fetch('/api/quote', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                tokenIn: fromToken.value,
+                                tokenOut: toToken.value,
+                                amountIn: parseFloat(fromAmount.value)
+                            })
+                        });
+
+                        if (res.ok) {
+                            quote.value = await res.json();
+                            toAmount.value = quote.value.amountOut.toFixed(6);
+                            priceImpact.value = quote.value.priceImpact || 0;
+                        }
+                    } catch (e) {
+                        console.error('Quote error:', e);
+                    }
+                };
+
+                const swapTokens = () => {
+                    const temp = fromToken.value;
+                    fromToken.value = toToken.value;
+                    toToken.value = temp;
+
+                    const tempAmount = fromAmount.value;
+                    fromAmount.value = toAmount.value;
+                    toAmount.value = tempAmount;
+
+                    calculateOutput();
+                };
+
+                const executeSwap = async () => {
+                    if (!canSwap.value) return;
+
+                    try {
+                        const res = await fetch('/api/swap', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                tokenIn: fromToken.value,
+                                tokenOut: toToken.value,
+                                amountIn: parseFloat(fromAmount.value),
+                                minAmountOut: quote.value.minimumReceived,
+                                userAddress: walletAddress.value
+                            })
+                        });
+
+                        const data = await res.json();
+                        if (data.success) {
+                            alert(`Swap successful! ${data.message}`);
+                            fromAmount.value = '';
+                            toAmount.value = '';
+                            quote.value = null;
+                            loadPools();
+                        } else {
+                            alert(data.error || 'Swap failed');
+                        }
+                    } catch (e) {
+                        alert('Swap error: ' + e.message);
+                    }
+                };
+
+                const addLiquidity = async () => {
+                    if (!walletConnected.value) {
+                        connectWallet();
+                        return;
+                    }
+
+                    try {
+                        const res = await fetch('/api/liquidity/add', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                token: lpToken.value,
+                                amountToken: parseFloat(lpTokenAmount.value),
+                                amountSCRY: parseFloat(lpScryAmount.value),
+                                userAddress: walletAddress.value
+                            })
+                        });
+
+                        const data = await res.json();
+                        if (data.success) {
+                            alert(`Liquidity added! You received ${data.lpTokens.toFixed(4)} LP tokens`);
+                            lpTokenAmount.value = '';
+                            lpScryAmount.value = '';
+                            loadPools();
+                        }
+                    } catch (e) {
+                        alert('Error: ' + e.message);
+                    }
+                };
+
+                const openTokenSelect = (type) => {
+                    tokenSelectType.value = type;
+                    tokenSearch.value = '';
+                    showTokenModal.value = true;
+                };
+
+                const selectToken = (token) => {
+                    if (tokenSelectType.value === 'from') {
+                        fromToken.value = token;
+                    } else if (tokenSelectType.value === 'to') {
+                        toToken.value = token;
+                    } else if (tokenSelectType.value === 'lp') {
+                        lpToken.value = token;
+                    }
+                    showTokenModal.value = false;
+                    calculateOutput();
+                };
+
+                const selectPool = (pool) => {
+                    fromToken.value = 'SCRYPT';
+                    toToken.value = pool.token;
+                    calculateOutput();
+                };
+
+                const connectWallet = () => {
+                    walletConnected.value = true;
+                    walletAddress.value = 'S' + Math.random().toString(36).slice(2, 10) + Math.random().toString(36).slice(2, 10);
+                };
+
+                const getBalance = (token) => {
+                    // Mock balances
+                    if (token === 'SCRYPT') return '10,000';
+                    return '1,000,000';
+                };
+
+                const formatNumber = (num) => {
+                    if (!num) return '0';
+                    if (num >= 1e12) return (num / 1e12).toFixed(2) + 'T';
+                    if (num >= 1e9) return (num / 1e9).toFixed(2) + 'B';
+                    if (num >= 1e6) return (num / 1e6).toFixed(2) + 'M';
+                    if (num >= 1e3) return (num / 1e3).toFixed(2) + 'K';
+                    return num.toFixed(2);
+                };
+
+                const shortenAddress = (addr) => {
+                    if (!addr) return '';
+                    return addr.slice(0, 6) + '...' + addr.slice(-4);
+                };
+
+                const formatTime = (timestamp) => {
+                    const diff = Date.now() - timestamp;
+                    if (diff < 60000) return 'Just now';
+                    if (diff < 3600000) return Math.floor(diff / 60000) + 'm ago';
+                    return Math.floor(diff / 3600000) + 'h ago';
+                };
+
+                watch(fromAmount, calculateOutput);
+
+                onMounted(() => {
+                    loadPools();
+                    loadTrades();
+
+                    socket = io();
+
+                    socket.on('trade', (trade) => {
+                        trades.value.unshift(trade);
+                        if (trades.value.length > 20) trades.value.pop();
+                    });
+
+                    socket.on('pool_update', ({ token, pool }) => {
+                        const idx = pools.value.findIndex(p => p.token === token);
+                        if (idx >= 0) {
+                            pools.value[idx] = { ...pools.value[idx], ...pool };
+                        }
+                    });
+                });
+
+                onUnmounted(() => {
+                    if (socket) socket.disconnect();
+                });
+
+                return {
+                    tab,
+                    walletConnected,
+                    walletAddress,
+                    pools,
+                    trades,
+                    fromToken,
+                    toToken,
+                    fromAmount,
+                    toAmount,
+                    quote,
+                    priceImpact,
+                    lpToken,
+                    lpTokenAmount,
+                    lpScryAmount,
+                    showTokenModal,
+                    tokenSearch,
+                    totalTVL,
+                    filteredPools,
+                    canSwap,
+                    swapButtonText,
+                    calculateOutput,
+                    swapTokens,
+                    executeSwap,
+                    addLiquidity,
+                    openTokenSelect,
+                    selectToken,
+                    selectPool,
+                    connectWallet,
+                    getBalance,
+                    formatNumber,
+                    shortenAddress,
+                    formatTime
+                };
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>

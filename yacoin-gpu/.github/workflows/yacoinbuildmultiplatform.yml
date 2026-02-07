@@ -1,0 +1,150 @@
+name: Yacoin multi platform build
+
+on: [push]
+
+jobs:
+  build-ubuntu-1604:
+    runs-on: ubuntu-latest  
+    steps:
+      - uses: actions/checkout@v3
+      - name: build
+        run: |
+          docker run -v /home/runner/work/yacoin/yacoin:/src -e BUILDVERSION=$GITHUB_RUN_NUMBER dev34253/yacoin-build:ubuntu.16.04-1
+      - uses: actions/upload-artifact@v4
+        with:
+          name: yacoind-ubuntu-16.04
+          path: /home/runner/work/yacoin/yacoin/release-root/bin/yacoind
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        with:
+          name: yacoin-qt-ubuntu-16.04
+          path: /home/runner/work/yacoin/yacoin/release-root/bin/yacoin-qt
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        with:
+          name: yacoin-cli-ubuntu-16.04
+          path: /home/runner/work/yacoin/yacoin/release-root/bin/yacoin-cli
+          if-no-files-found: error
+  build-ubuntu-1604-functional-test:
+    runs-on: ubuntu-latest  
+    steps:
+      - uses: actions/checkout@v3
+      - name: build
+        run: |
+          docker run -v /home/runner/work/yacoin/yacoin:/src --entrypoint /bin/bash dev34253/yacoin-build:ubuntu.16.04 -c "cd /src && ./autogen.sh && ./configure --with-gui=no --enable-low-difficulty-for-development && make -j 2"
+          docker run -v /home/runner/work/yacoin/yacoin:/src --entrypoint /src/test/functional/test_runner.py dev34253/yacoin-build:ubuntu.16.04 -j 1
+      - uses: actions/upload-artifact@v4
+        with:
+          name: yacoind-low-difficulty-16.04
+          path: /home/runner/work/yacoin/yacoin/src/yacoind
+          if-no-files-found: error
+  build-ubuntu-1804:
+    runs-on: ubuntu-latest  
+    steps:
+      - uses: actions/checkout@v3
+      - name: build
+        run: |
+          docker run -v /home/runner/work/yacoin/yacoin:/src -e BUILDVERSION=$GITHUB_RUN_NUMBER dev34253/yacoin-build:ubuntu.18.04-1
+      - uses: actions/upload-artifact@v4
+        with:
+          name: yacoind-ubuntu-18.04
+          path: /home/runner/work/yacoin/yacoin/release-root/bin/yacoind
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        with:
+          name: yacoin-qt-ubuntu-18.04-qt4
+          path: /home/runner/work/yacoin/yacoin/release-root/bin/yacoin-qt
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        with:
+          name: yacoin-cli-ubuntu-18.04
+          path: /home/runner/work/yacoin/yacoin/release-root/bin/yacoin-cli
+          if-no-files-found: error
+  build-ubuntu-2004:
+    runs-on: ubuntu-latest  
+    steps:
+      - uses: actions/checkout@v3
+      - name: build
+        run: |
+          docker run -v /home/runner/work/yacoin/yacoin:/src -e BUILDVERSION=$GITHUB_RUN_NUMBER dev34253/yacoin-build:ubuntu.20.04-1
+      - uses: actions/upload-artifact@v4
+        with:
+          name: yacoind-ubuntu-20.04
+          path: /home/runner/work/yacoin/yacoin/release-root/bin/yacoind
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        with:
+          name: yacoin-qt-ubuntu-20.04-qt4
+          path: /home/runner/work/yacoin/yacoin/release-root/bin/yacoin-qt
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        with:
+          name: yacoin-cli-ubuntu-20.04
+          path: /home/runner/work/yacoin/yacoin/release-root/bin/yacoin-cli
+          if-no-files-found: error
+  build-ubuntu-2204:
+    runs-on: ubuntu-latest  
+    steps:
+      - uses: actions/checkout@v3
+      - name: build
+        run: |
+          docker run -v /home/runner/work/yacoin/yacoin:/src -e BUILDVERSION=$GITHUB_RUN_NUMBER dev34253/yacoin-build:ubuntu.22.04-1
+      - uses: actions/upload-artifact@v4
+        with:
+          name: yacoind-ubuntu-22.04
+          path: /home/runner/work/yacoin/yacoin/release-root/bin/yacoind
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        with:
+          name: yacoin-qt-ubuntu-22.04-qt4
+          path: /home/runner/work/yacoin/yacoin/release-root/bin/yacoin-qt
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        with:
+          name: yacoin-cli-ubuntu-22.04
+          path: /home/runner/work/yacoin/yacoin/release-root/bin/yacoin-cli
+          if-no-files-found: error
+  build-windows:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: build
+        run: |
+          docker run -v /home/runner/work/yacoin/yacoin:/src -e BUILDVERSION=$GITHUB_RUN_NUMBER dev34253/yacoin-build:windows-1
+      - uses: actions/upload-artifact@v4
+        with:
+          name: yacoin-qt-windows
+          path: /home/runner/work/yacoin/yacoin/release-root/bin/yacoin-qt.exe
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        with:
+          name: yacoind-windows
+          path: /home/runner/work/yacoin/yacoin/release-root/bin/yacoind.exe
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        with:
+          name: yacoin-cli-windows
+          path: /home/runner/work/yacoin/yacoin/release-root/bin/yacoin-cli.exe
+          if-no-files-found: error
+  build-macos:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: build
+        run: |
+          docker run -v /home/runner/work/yacoin/yacoin:/src -e BUILDVERSION=$GITHUB_RUN_NUMBER dev34253/yacoin-build:macos-1
+      - uses: actions/upload-artifact@v4
+        with:
+          name: yacoin-qt-macos
+          path: /home/runner/work/yacoin/yacoin/release-root/bin/yacoin-qt
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        with:
+          name: yacoind-macos
+          path: /home/runner/work/yacoin/yacoin/release-root/bin/yacoind
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        with:
+          name: yacoin-cli-macos
+          path: /home/runner/work/yacoin/yacoin/release-root/bin/yacoin-cli
+          if-no-files-found: error

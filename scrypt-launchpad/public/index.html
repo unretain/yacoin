@@ -1,0 +1,1154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scrypt Launchpad - Create Your Memecoin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.prod.js"></script>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <style>
+        :root {
+            --primary: #8b5cf6;
+            --primary-dark: #7c3aed;
+            --secondary: #06b6d4;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --bg-dark: #0f0f1a;
+            --bg-card: #1a1a2e;
+            --bg-input: #252542;
+            --text: #ffffff;
+            --text-muted: #94a3b8;
+            --border: #3f3f6f;
+            --gradient: linear-gradient(135deg, #8b5cf6, #06b6d4);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+            background: var(--bg-dark);
+            color: var(--text);
+            min-height: 100vh;
+            background-image:
+                radial-gradient(ellipse at top left, rgba(139, 92, 246, 0.15), transparent 50%),
+                radial-gradient(ellipse at bottom right, rgba(6, 182, 212, 0.15), transparent 50%);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Header */
+        header {
+            padding: 20px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .logo-icon {
+            width: 45px;
+            height: 45px;
+            background: var(--gradient);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 30px;
+        }
+
+        .nav-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+
+        .nav-links a:hover, .nav-links a.active {
+            color: var(--primary);
+        }
+
+        .connect-btn {
+            background: var(--gradient);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .connect-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(139, 92, 246, 0.3);
+        }
+
+        /* Hero Section */
+        .hero {
+            text-align: center;
+            padding: 60px 0 40px;
+        }
+
+        .hero h1 {
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin-bottom: 16px;
+            background: var(--gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero p {
+            font-size: 1.25rem;
+            color: var(--text-muted);
+            max-width: 600px;
+            margin: 0 auto 30px;
+        }
+
+        .stats-row {
+            display: flex;
+            justify-content: center;
+            gap: 60px;
+            margin-top: 30px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .stat-label {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-top: 4px;
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 40px 0 30px;
+        }
+
+        .tab-btn {
+            background: var(--bg-card);
+            color: var(--text-muted);
+            border: 1px solid var(--border);
+            padding: 12px 28px;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .tab-btn:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .tab-btn.active {
+            background: var(--gradient);
+            color: white;
+            border-color: transparent;
+        }
+
+        /* Main Layout */
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 30px;
+            padding-bottom: 60px;
+        }
+
+        /* Token Grid */
+        .token-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .token-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .token-card:hover {
+            border-color: var(--primary);
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .token-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .token-img {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            background: var(--bg-input);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        .token-info h3 {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .token-ticker {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        .token-desc {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            line-height: 1.5;
+            margin-bottom: 16px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .token-stats {
+            display: flex;
+            justify-content: space-between;
+            padding-top: 12px;
+            border-top: 1px solid var(--border);
+        }
+
+        .token-stat {
+            text-align: center;
+        }
+
+        .token-stat-value {
+            font-weight: 600;
+            color: var(--secondary);
+        }
+
+        .token-stat-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        /* Create Form */
+        .create-panel {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 30px;
+            position: sticky;
+            top: 20px;
+        }
+
+        .create-panel h2 {
+            font-size: 1.5rem;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--text-muted);
+        }
+
+        .form-group input, .form-group textarea {
+            width: 100%;
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 14px;
+            color: var(--text);
+            font-size: 1rem;
+            font-family: inherit;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .image-upload {
+            border: 2px dashed var(--border);
+            border-radius: 12px;
+            padding: 30px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .image-upload:hover {
+            border-color: var(--primary);
+            background: rgba(139, 92, 246, 0.05);
+        }
+
+        .image-upload.has-image {
+            padding: 10px;
+        }
+
+        .image-upload img {
+            max-width: 100%;
+            max-height: 150px;
+            border-radius: 10px;
+        }
+
+        .upload-icon {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .upload-text {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        .social-inputs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .social-input {
+            display: flex;
+            align-items: center;
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 0 12px;
+        }
+
+        .social-input span {
+            color: var(--text-muted);
+            font-size: 1.2rem;
+        }
+
+        .social-input input {
+            background: transparent;
+            border: none;
+            padding: 12px 8px;
+        }
+
+        .create-btn {
+            width: 100%;
+            background: var(--gradient);
+            color: white;
+            border: none;
+            padding: 16px;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 10px;
+        }
+
+        .create-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(139, 92, 246, 0.4);
+        }
+
+        .create-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .fee-info {
+            text-align: center;
+            margin-top: 15px;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        .fee-amount {
+            color: var(--warning);
+            font-weight: 600;
+        }
+
+        /* Token Detail Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+
+        .modal {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            max-width: 600px;
+            width: 100%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 24px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        .modal-body {
+            padding: 24px;
+        }
+
+        .modal-token-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .modal-token-img {
+            width: 80px;
+            height: 80px;
+            border-radius: 16px;
+            background: var(--bg-input);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+        }
+
+        .modal-token-name h2 {
+            font-size: 1.5rem;
+        }
+
+        .modal-token-name p {
+            color: var(--text-muted);
+        }
+
+        .modal-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .modal-stat {
+            background: var(--bg-input);
+            padding: 16px;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .modal-stat-value {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .modal-stat-label {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            margin-top: 4px;
+        }
+
+        .modal-social {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+        }
+
+        .social-btn {
+            flex: 1;
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 12px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            text-align: center;
+        }
+
+        .social-btn:hover {
+            border-color: var(--primary);
+            background: rgba(139, 92, 246, 0.1);
+        }
+
+        /* Success Animation */
+        .success-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.9);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+
+        .success-icon {
+            font-size: 5rem;
+            margin-bottom: 24px;
+            animation: bounce 0.5s ease;
+        }
+
+        .success-message {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+
+        .success-sub {
+            color: var(--text-muted);
+            margin-bottom: 30px;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+        }
+
+        /* Live Feed */
+        .live-feed {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .live-feed h3 {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .live-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--success);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .feed-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .feed-item:last-child {
+            border-bottom: none;
+        }
+
+        .feed-icon {
+            width: 36px;
+            height: 36px;
+            background: var(--bg-input);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .feed-text {
+            flex: 1;
+        }
+
+        .feed-time {
+            color: var(--text-muted);
+            font-size: 0.8rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+
+            .create-panel {
+                position: static;
+            }
+
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+
+            .stats-row {
+                gap: 30px;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .header-content {
+                flex-wrap: wrap;
+                gap: 16px;
+            }
+
+            .nav-links {
+                order: 3;
+                width: 100%;
+                justify-content: center;
+            }
+
+            .form-row, .social-inputs {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <header>
+            <div class="container">
+                <div class="header-content">
+                    <div class="logo">
+                        <div class="logo-icon">S</div>
+                        <span>Scrypt Launchpad</span>
+                    </div>
+                    <nav class="nav-links">
+                        <a href="#" :class="{ active: tab === 'explore' }" @click.prevent="tab = 'explore'">Explore</a>
+                        <a href="#" :class="{ active: tab === 'create' }" @click.prevent="tab = 'create'">Create</a>
+                        <a href="http://localhost:3001" target="_blank">Explorer</a>
+                    </nav>
+                    <button class="connect-btn" @click="connectWallet">
+                        {{ walletConnected ? shortenAddress(walletAddress) : 'Connect Wallet' }}
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <main class="container">
+            <section class="hero">
+                <h1>Launch Your Memecoin</h1>
+                <p>Create tokens on Scrypt blockchain in seconds. No coding required. Fair launch, community driven.</p>
+                <div class="stats-row">
+                    <div class="stat-item">
+                        <div class="stat-value">{{ stats.tokensCreated }}</div>
+                        <div class="stat-label">Tokens Created</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">{{ formatNumber(stats.totalVolume) }}</div>
+                        <div class="stat-label">Total Volume (SCRYPT)</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">{{ stats.creationFee }} SCRYPT</div>
+                        <div class="stat-label">Creation Fee</div>
+                    </div>
+                </div>
+            </section>
+
+            <div class="tabs">
+                <button class="tab-btn" :class="{ active: filter === 'trending' }" @click="filter = 'trending'">Trending</button>
+                <button class="tab-btn" :class="{ active: filter === 'new' }" @click="filter = 'new'">New</button>
+                <button class="tab-btn" :class="{ active: filter === 'all' }" @click="filter = 'all'">All Tokens</button>
+            </div>
+
+            <div class="main-content">
+                <div>
+                    <div class="token-grid">
+                        <div class="token-card" v-for="token in filteredTokens" :key="token.ticker" @click="showTokenDetail(token)">
+                            <div class="token-header">
+                                <div class="token-img">
+                                    <img v-if="token.imageUrl && !token.imageUrl.includes('default')" :src="token.imageUrl" :alt="token.name">
+                                    <span v-else>{{ token.ticker.charAt(0) }}</span>
+                                </div>
+                                <div class="token-info">
+                                    <h3>{{ token.name }}</h3>
+                                    <div class="token-ticker">${{ token.ticker }}</div>
+                                </div>
+                            </div>
+                            <p class="token-desc">{{ token.description || 'No description available' }}</p>
+                            <div class="token-stats">
+                                <div class="token-stat">
+                                    <div class="token-stat-value">{{ formatNumber(token.supply) }}</div>
+                                    <div class="token-stat-label">Supply</div>
+                                </div>
+                                <div class="token-stat">
+                                    <div class="token-stat-value">{{ token.holders || 0 }}</div>
+                                    <div class="token-stat-label">Holders</div>
+                                </div>
+                                <div class="token-stat">
+                                    <div class="token-stat-value">{{ token.txCount || 0 }}</div>
+                                    <div class="token-stat-label">Txns</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Live Feed -->
+                    <div class="live-feed" v-if="liveFeed.length > 0">
+                        <h3><span class="live-dot"></span> Live Activity</h3>
+                        <div class="feed-item" v-for="item in liveFeed" :key="item.id">
+                            <div class="feed-icon">{{ item.icon }}</div>
+                            <div class="feed-text">{{ item.message }}</div>
+                            <div class="feed-time">{{ item.time }}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Create Panel -->
+                <div class="create-panel">
+                    <h2>Create Token</h2>
+
+                    <div class="form-group">
+                        <label>Token Image</label>
+                        <div class="image-upload" :class="{ 'has-image': form.imageUrl }" @click="$refs.imageInput.click()">
+                            <img v-if="form.imageUrl" :src="form.imageUrl" alt="Token image">
+                            <template v-else>
+                                <div class="upload-icon">+</div>
+                                <div class="upload-text">Click to upload image</div>
+                            </template>
+                        </div>
+                        <input type="file" ref="imageInput" @change="uploadImage" accept="image/*" style="display: none">
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Ticker *</label>
+                            <input type="text" v-model="form.ticker" placeholder="MEME" maxlength="8" @input="form.ticker = form.ticker.toUpperCase()">
+                        </div>
+                        <div class="form-group">
+                            <label>Name *</label>
+                            <input type="text" v-model="form.name" placeholder="My Memecoin" maxlength="32">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Total Supply *</label>
+                            <input type="number" v-model="form.supply" placeholder="1000000000">
+                        </div>
+                        <div class="form-group">
+                            <label>Decimals</label>
+                            <input type="number" v-model="form.decimals" placeholder="8" min="0" max="18">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Description</label>
+                        <textarea v-model="form.description" placeholder="Describe your token..."></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Social Links (optional)</label>
+                        <div class="social-inputs">
+                            <div class="social-input">
+                                <span>W</span>
+                                <input type="text" v-model="form.website" placeholder="website.com">
+                            </div>
+                            <div class="social-input">
+                                <span>X</span>
+                                <input type="text" v-model="form.twitter" placeholder="@handle">
+                            </div>
+                            <div class="social-input">
+                                <span>T</span>
+                                <input type="text" v-model="form.telegram" placeholder="t.me/group">
+                            </div>
+                            <div class="social-input">
+                                <span>D</span>
+                                <input type="text" v-model="form.discord" placeholder="discord.gg/xxx">
+                            </div>
+                        </div>
+                    </div>
+
+                    <button class="create-btn" @click="createToken" :disabled="!canCreate || creating">
+                        {{ creating ? 'Creating...' : 'Create Token' }}
+                    </button>
+
+                    <div class="fee-info">
+                        Creation fee: <span class="fee-amount">{{ stats.creationFee }} SCRYPT</span>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Token Detail Modal -->
+        <div class="modal-overlay" v-if="selectedToken" @click.self="selectedToken = null">
+            <div class="modal">
+                <div class="modal-header">
+                    <h2>Token Details</h2>
+                    <button class="modal-close" @click="selectedToken = null">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="modal-token-header">
+                        <div class="modal-token-img">
+                            <img v-if="selectedToken.imageUrl && !selectedToken.imageUrl.includes('default')" :src="selectedToken.imageUrl" :alt="selectedToken.name">
+                            <span v-else>{{ selectedToken.ticker.charAt(0) }}</span>
+                        </div>
+                        <div class="modal-token-name">
+                            <h2>{{ selectedToken.name }}</h2>
+                            <p>${{ selectedToken.ticker }}</p>
+                        </div>
+                    </div>
+
+                    <div class="modal-stats">
+                        <div class="modal-stat">
+                            <div class="modal-stat-value">{{ formatNumber(selectedToken.supply) }}</div>
+                            <div class="modal-stat-label">Total Supply</div>
+                        </div>
+                        <div class="modal-stat">
+                            <div class="modal-stat-value">{{ selectedToken.holders || 0 }}</div>
+                            <div class="modal-stat-label">Holders</div>
+                        </div>
+                        <div class="modal-stat">
+                            <div class="modal-stat-value">{{ selectedToken.decimals }}</div>
+                            <div class="modal-stat-label">Decimals</div>
+                        </div>
+                    </div>
+
+                    <p style="color: var(--text-muted); line-height: 1.6;">{{ selectedToken.description || 'No description available.' }}</p>
+
+                    <div class="modal-social" v-if="selectedToken.website || selectedToken.twitter || selectedToken.telegram">
+                        <a class="social-btn" v-if="selectedToken.website" :href="'https://' + selectedToken.website" target="_blank">Website</a>
+                        <a class="social-btn" v-if="selectedToken.twitter" :href="'https://twitter.com/' + selectedToken.twitter" target="_blank">Twitter</a>
+                        <a class="social-btn" v-if="selectedToken.telegram" :href="'https://' + selectedToken.telegram" target="_blank">Telegram</a>
+                    </div>
+
+                    <p style="margin-top: 20px; color: var(--text-muted); font-size: 0.85rem;">
+                        Created by: {{ shortenAddress(selectedToken.creator) }}<br>
+                        Created: {{ new Date(selectedToken.createdAt).toLocaleDateString() }}
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Success Modal -->
+        <div class="success-overlay" v-if="showSuccess" @click="showSuccess = false">
+            <div class="success-icon">+</div>
+            <div class="success-message">Token Created!</div>
+            <div class="success-sub">Your token ${{ createdToken?.ticker }} is now live</div>
+            <button class="connect-btn" @click="showSuccess = false">Awesome!</button>
+        </div>
+    </div>
+
+    <script>
+        const { createApp, ref, computed, onMounted, onUnmounted } = Vue;
+
+        createApp({
+            setup() {
+                const tab = ref('explore');
+                const filter = ref('trending');
+                const tokens = ref([]);
+                const selectedToken = ref(null);
+                const walletConnected = ref(false);
+                const walletAddress = ref('');
+                const creating = ref(false);
+                const showSuccess = ref(false);
+                const createdToken = ref(null);
+                const liveFeed = ref([]);
+
+                const stats = ref({
+                    tokensCreated: 0,
+                    totalVolume: 0,
+                    creationFee: 100
+                });
+
+                const form = ref({
+                    ticker: '',
+                    name: '',
+                    supply: 1000000000,
+                    decimals: 8,
+                    description: '',
+                    imageUrl: '',
+                    website: '',
+                    twitter: '',
+                    telegram: '',
+                    discord: ''
+                });
+
+                // Socket.io connection
+                let socket = null;
+
+                const loadStats = async () => {
+                    try {
+                        const res = await fetch('/api/stats');
+                        const data = await res.json();
+                        stats.value = { ...stats.value, ...data };
+                    } catch (e) {
+                        console.error('Failed to load stats:', e);
+                    }
+                };
+
+                const loadTokens = async () => {
+                    try {
+                        const res = await fetch('/api/tokens/recent?limit=50');
+                        tokens.value = await res.json();
+                    } catch (e) {
+                        console.error('Failed to load tokens:', e);
+                    }
+                };
+
+                const filteredTokens = computed(() => {
+                    let result = [...tokens.value];
+                    if (filter.value === 'trending') {
+                        result.sort((a, b) => (b.holders || 0) - (a.holders || 0));
+                    } else if (filter.value === 'new') {
+                        result.sort((a, b) => b.createdAt - a.createdAt);
+                    }
+                    return result;
+                });
+
+                const canCreate = computed(() => {
+                    return form.value.ticker.length >= 3 &&
+                           form.value.name.length >= 2 &&
+                           form.value.supply > 0;
+                });
+
+                const formatNumber = (num) => {
+                    if (!num) return '0';
+                    if (num >= 1e12) return (num / 1e12).toFixed(2) + 'T';
+                    if (num >= 1e9) return (num / 1e9).toFixed(2) + 'B';
+                    if (num >= 1e6) return (num / 1e6).toFixed(2) + 'M';
+                    if (num >= 1e3) return (num / 1e3).toFixed(2) + 'K';
+                    return num.toString();
+                };
+
+                const shortenAddress = (addr) => {
+                    if (!addr) return '';
+                    return addr.slice(0, 6) + '...' + addr.slice(-4);
+                };
+
+                const connectWallet = () => {
+                    // Simulated wallet connection
+                    walletConnected.value = true;
+                    walletAddress.value = 'S' + Math.random().toString(36).slice(2, 10) + Math.random().toString(36).slice(2, 10);
+                };
+
+                const uploadImage = async (event) => {
+                    const file = event.target.files[0];
+                    if (!file) return;
+
+                    const formData = new FormData();
+                    formData.append('image', file);
+
+                    try {
+                        const res = await fetch('/api/upload', {
+                            method: 'POST',
+                            body: formData
+                        });
+                        const data = await res.json();
+                        form.value.imageUrl = data.imageUrl;
+                    } catch (e) {
+                        alert('Failed to upload image');
+                    }
+                };
+
+                const createToken = async () => {
+                    if (!walletConnected.value) {
+                        connectWallet();
+                        return;
+                    }
+
+                    creating.value = true;
+
+                    try {
+                        const res = await fetch('/api/token/create', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                ...form.value,
+                                creatorAddress: walletAddress.value
+                            })
+                        });
+
+                        const data = await res.json();
+
+                        if (data.success) {
+                            createdToken.value = data.token;
+                            showSuccess.value = true;
+
+                            // Reset form
+                            form.value = {
+                                ticker: '',
+                                name: '',
+                                supply: 1000000000,
+                                decimals: 8,
+                                description: '',
+                                imageUrl: '',
+                                website: '',
+                                twitter: '',
+                                telegram: '',
+                                discord: ''
+                            };
+
+                            // Reload tokens
+                            setTimeout(loadTokens, 3500);
+                        } else {
+                            alert(data.error || 'Failed to create token');
+                        }
+                    } catch (e) {
+                        alert('Failed to create token: ' + e.message);
+                    } finally {
+                        creating.value = false;
+                    }
+                };
+
+                const showTokenDetail = (token) => {
+                    selectedToken.value = token;
+                };
+
+                const addFeedItem = (message, icon = '+') => {
+                    const item = {
+                        id: Date.now(),
+                        message,
+                        icon,
+                        time: 'now'
+                    };
+                    liveFeed.value.unshift(item);
+                    if (liveFeed.value.length > 5) {
+                        liveFeed.value.pop();
+                    }
+                };
+
+                onMounted(() => {
+                    loadStats();
+                    loadTokens();
+
+                    // Connect to WebSocket
+                    socket = io();
+
+                    socket.on('token_created', (token) => {
+                        tokens.value.unshift(token);
+                        addFeedItem(`New token launched: $${token.ticker}`, '+');
+                        stats.value.tokensCreated++;
+                    });
+
+                    socket.on('recent_tokens', (recentTokens) => {
+                        // Merge with existing tokens
+                        recentTokens.forEach(t => {
+                            if (!tokens.value.find(x => x.ticker === t.ticker)) {
+                                tokens.value.push(t);
+                            }
+                        });
+                    });
+
+                    // Simulate some live activity
+                    setInterval(() => {
+                        const actions = [
+                            'Someone bought 10M $PEPE',
+                            'New holder joined $DOGE',
+                            '$MOON price up 5%',
+                            'Airdrop completed for $PEPE'
+                        ];
+                        // addFeedItem(actions[Math.floor(Math.random() * actions.length)], '*');
+                    }, 30000);
+                });
+
+                onUnmounted(() => {
+                    if (socket) socket.disconnect();
+                });
+
+                return {
+                    tab,
+                    filter,
+                    tokens,
+                    filteredTokens,
+                    selectedToken,
+                    stats,
+                    form,
+                    walletConnected,
+                    walletAddress,
+                    creating,
+                    showSuccess,
+                    createdToken,
+                    liveFeed,
+                    canCreate,
+                    formatNumber,
+                    shortenAddress,
+                    connectWallet,
+                    uploadImage,
+                    createToken,
+                    showTokenDetail
+                };
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>
