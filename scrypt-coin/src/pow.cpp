@@ -213,8 +213,9 @@ bool CheckProofOfWork(uint256 hash, unsigned int nBits, const Consensus::Params&
     CBigNum bnTarget;
     bnTarget.SetCompact(nBits);
 
-    // Check range
-    if ((bnTarget <= 0) || (bnTarget > (params.powLimit)))
+    // Check range - convert arith_uint256 to CBigNum for comparison
+    CBigNum bnPowLimit(ArithToUint256(params.powLimit));
+    if ((bnTarget <= 0) || (bnTarget > bnPowLimit))
       return error("CheckProofOfWork() : nBits below minimum work");
     // Check proof of work matches claimed amount
     if (hash > bnTarget.getuint256())
@@ -239,8 +240,9 @@ bool CheckAdaptiveProofOfWork(
     CBigNum bnTarget;
     bnTarget.SetCompact(nBits);
 
-    // Check range
-    if ((bnTarget <= 0) || (bnTarget > (params.powLimit)))
+    // Check range - convert arith_uint256 to CBigNum for comparison
+    CBigNum bnPowLimit(ArithToUint256(params.powLimit));
+    if ((bnTarget <= 0) || (bnTarget > bnPowLimit))
         return error("CheckAdaptiveProofOfWork() : nBits below minimum work");
 
     // Calculate epoch from timestamp
