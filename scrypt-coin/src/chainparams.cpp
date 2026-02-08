@@ -14,43 +14,82 @@
 
 #include <assert.h>
 #include <iostream>
+#include <thread>
+#include <atomic>
+#include <vector>
 
 #include "chainparamsseeds.h"
 
-// Genesis block mining helper
-static void MineGenesisBlock(CBlock& genesis, const arith_uint256& bnTarget)
-{
-    printf("Mining genesis block...\n");
-    printf("Target: %s\n", bnTarget.GetHex().c_str());
+// Multi-threaded genesis block mining helper
+static std::atomic<bool> g_found{false};
+static std::atomic<uint32_t> g_foundNonce{0};
+static uint256 g_foundHash;
+static std::mutex g_mutex;
 
-    uint32_t nNonce = 0;
-    while (true) {
+static void MineGenesisThread(CBlock genesis, const arith_uint256& bnTarget, uint32_t startNonce, uint32_t step, int threadId)
+{
+    uint32_t nNonce = startNonce;
+    uint64_t attempts = 0;
+
+    while (!g_found.load()) {
         genesis.nNonce = nNonce;
         uint256 hash = genesis.GetHash();
 
         if (UintToArith256(hash) <= bnTarget) {
-            printf("\n=== GENESIS BLOCK MINED ===\n");
-            printf("nNonce: %u\n", nNonce);
-            printf("Hash: %s\n", hash.GetHex().c_str());
-            printf("Merkle Root: %s\n", genesis.hashMerkleRoot.GetHex().c_str());
-            printf("\nUpdate chainparams.cpp with these values:\n");
-            printf("static uint256 hashGenesisBlock = uint256S(\"0x%s\");\n", hash.GetHex().c_str());
-            printf("static uint32_t nGenesisNonce = %u;\n", nNonce);
-            printf("static uint256 hashGenesisMerkleRoot = uint256S(\"0x%s\");\n", genesis.hashMerkleRoot.GetHex().c_str());
-            printf("===========================\n");
-            break;
+            std::lock_guard<std::mutex> lock(g_mutex);
+            if (!g_found.load()) {
+                g_found.store(true);
+                g_foundNonce.store(nNonce);
+                g_foundHash = hash;
+            }
+            return;
         }
 
-        if (nNonce % 100000 == 0) {
-            printf("Tried %u nonces, current hash: %s\r", nNonce, hash.GetHex().c_str());
+        attempts++;
+        if (threadId == 0 && attempts % 10000 == 0) {
+            printf("Thread 0: Tried %llu nonces (current: %u)\r", (unsigned long long)attempts, nNonce);
             fflush(stdout);
         }
 
-        nNonce++;
-        if (nNonce == 0) {
-            printf("Nonce wrapped! Need to change timestamp.\n");
-            break;
+        nNonce += step;
+        if (nNonce < startNonce) {  // Wrapped
+            return;
         }
+    }
+}
+
+static void MineGenesisBlock(CBlock& genesis, const arith_uint256& bnTarget)
+{
+    unsigned int numThreads = std::thread::hardware_concurrency();
+    if (numThreads == 0) numThreads = 4;
+
+    printf("Mining genesis block with %u threads...\n", numThreads);
+    printf("Target: %s\n", bnTarget.GetHex().c_str());
+
+    g_found.store(false);
+
+    std::vector<std::thread> threads;
+    for (unsigned int i = 0; i < numThreads; i++) {
+        threads.emplace_back(MineGenesisThread, genesis, bnTarget, i, numThreads, i);
+    }
+
+    for (auto& t : threads) {
+        t.join();
+    }
+
+    if (g_found.load()) {
+        genesis.nNonce = g_foundNonce.load();
+        printf("\n=== GENESIS BLOCK MINED ===\n");
+        printf("nNonce: %u\n", genesis.nNonce);
+        printf("Hash: %s\n", g_foundHash.GetHex().c_str());
+        printf("Merkle Root: %s\n", genesis.hashMerkleRoot.GetHex().c_str());
+        printf("\nUpdate chainparams.cpp with these values:\n");
+        printf("static uint256 hashGenesisBlock = uint256S(\"0x%s\");\n", g_foundHash.GetHex().c_str());
+        printf("static uint32_t nGenesisNonce = %u;\n", genesis.nNonce);
+        printf("static uint256 hashGenesisMerkleRoot = uint256S(\"0x%s\");\n", genesis.hashMerkleRoot.GetHex().c_str());
+        printf("===========================\n");
+    } else {
+        printf("Nonce space exhausted! Need to change timestamp.\n");
     }
 }
 
@@ -118,8 +157,8 @@ public:
     CMainParams() {
         strNetworkID = "main";
 
-        // AdaptivePow consensus parameters
-        consensus.powLimit = UintToArith256(uint256S("00000fffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"));
+        // AdaptivePow consensus parameters - easy for instant genesis mining
+        consensus.powLimit = UintToArith256(uint256S("7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"));
         consensus.nPowTargetTimespan = 60 * 60;  // 1 hour
         consensus.nPowTargetSpacing = 60;  // 1 minute blocks
         consensus.fPowAllowMinDifficultyBlocks = false;
@@ -164,14 +203,13 @@ public:
         nDefaultPort = 9333;
         nPruneAfterHeight = 100000;
 
-        // Genesis block - use nBits matching powLimit (0x1e0fffff)
-        // This requires ~1 million hash attempts on average
-        genesis = CreateGenesisBlock(nGenesisTime, nGenesisNonce, 0x1e0fffff, 1);
+        // Genesis block - easy difficulty for instant mining
+        genesis = CreateGenesisBlock(nGenesisTime, nGenesisNonce, 0x207fffff, 1);
 
         // Mine genesis if nonce is placeholder (0)
         if (nGenesisNonce == 0) {
             arith_uint256 genesisTarget;
-            genesisTarget.SetCompact(0x1e0fffff);
+            genesisTarget.SetCompact(0x207fffff);
             MineGenesisBlock(genesis, genesisTarget);
         }
 
