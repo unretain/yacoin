@@ -52,7 +52,6 @@
 #include "wallet/rpcwallet.h"
 #include "adaptivepow.h"
 
-using std::auto_ptr;
 using std::list;
 using std::map;
 using std::max;
