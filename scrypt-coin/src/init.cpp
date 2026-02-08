@@ -1,6 +1,6 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
 // Copyright (c) 2009-2016 The Bitcoin Core developers
-// Copyright (c) 2017-2025 The Yacoin Core developers
+// Copyright (c) 2024-2026 The Scrypt Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -283,7 +283,7 @@ void Shutdown()
     LogPrintf("wallet unregistered\n");
     globalVerifyHandle.reset();
     ECC_Stop();
-    LogPrintf("Yacoin exited\n\n");
+    LogPrintf("Scrypt exited\n\n");
 }
 
 /**
@@ -466,8 +466,8 @@ std::string HelpMessage(HelpMessageMode mode)
 
 std::string LicenseInfo()
 {
-    const std::string URL_SOURCE_CODE = "<https://github.com/yacoin/yacoin>";
-    const std::string URL_WEBSITE = "<https://yacoin.org>";
+    const std::string URL_SOURCE_CODE = "<https://github.com/unretain/scrypt>";
+    const std::string URL_WEBSITE = "<https://github.com/unretain/scrypt>";
 
     return CopyrightHolders(strprintf(_("Copyright (C) %i-%i"), 2013, COPYRIGHT_YEAR) + " ") + "\n" +
            "\n" +
@@ -589,7 +589,7 @@ void InitLogging()
     fLogIPs = gArgs.GetBoolArg("-logips", DEFAULT_LOGIPS);
 
     LogPrintf("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
-    LogPrintf("Yacoin version %s (%s)\n", FormatFullVersion(), CLIENT_DATE);
+    LogPrintf("Scrypt version %s (%s)\n", FormatFullVersion(), CLIENT_DATE);
 }
 
 namespace { // Variables internal to initialization process only
@@ -1009,7 +1009,7 @@ bool AppInitMain(boost::thread_group& threadGroup, CScheduler& scheduler)
     }
 
     if (fDaemon)
-        fprintf(stdout, "Yacoin server starting\n");
+        fprintf(stdout, "Scrypt server starting\n");
 
 #if defined( USE_UPNP )
         LogPrintf( "USE_UPNP is defined\n" );

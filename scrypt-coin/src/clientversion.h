@@ -1,10 +1,10 @@
 // Copyright (c) 2009-2016 The Bitcoin Core developers
-// Copyright (c) 2017-2025 The Yacoin Core developers
+// Copyright (c) 2024-2026 The Scrypt Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef YACOIN_CLIENTVERSION_H
-#define YACOIN_CLIENTVERSION_H
+#ifndef SCRYPT_CLIENTVERSION_H
+#define SCRYPT_CLIENTVERSION_H
 
 #if defined(HAVE_CONFIG_H)
 #include "config/scrypt-config.h"
@@ -53,4 +53,4 @@ std::string FormatSubVersion(const std::string& name, int nClientVersion, const 
 
 #endif // WINDRES_PREPROC
 
-#endif // YACOIN_CLIENTVERSION_H
+#endif // SCRYPT_CLIENTVERSION_H
