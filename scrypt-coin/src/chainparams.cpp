@@ -164,14 +164,14 @@ public:
         nDefaultPort = 9333;
         nPruneAfterHeight = 100000;
 
-        // Genesis block - use easy nBits (0x207fffff) so any hash is valid
-        // Difficulty adjusts normally after first blocks
-        genesis = CreateGenesisBlock(nGenesisTime, nGenesisNonce, 0x207fffff, 1);
+        // Genesis block - use nBits matching powLimit (0x1e0fffff)
+        // This requires ~1 million hash attempts on average
+        genesis = CreateGenesisBlock(nGenesisTime, nGenesisNonce, 0x1e0fffff, 1);
 
         // Mine genesis if nonce is placeholder (0)
         if (nGenesisNonce == 0) {
             arith_uint256 genesisTarget;
-            genesisTarget.SetCompact(0x207fffff);
+            genesisTarget.SetCompact(0x1e0fffff);
             MineGenesisBlock(genesis, genesisTarget);
         }
 
