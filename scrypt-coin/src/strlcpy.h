@@ -19,9 +19,38 @@
 #include <stdlib.h>
 #include <string.h>
 
-// Modern glibc (2.38+) provides strlcpy/strlcat natively
-// Only define our own if they're not already available
-#if !defined(__GLIBC__) || (__GLIBC__ < 2) || ((__GLIBC__ == 2) && (__GLIBC_MINOR__ < 38))
+/*
+ * Detect if strlcpy/strlcat are already provided by the system.
+ *
+ * Modern glibc 2.38+ provides these functions natively.
+ * BSD systems (macOS, FreeBSD, OpenBSD, NetBSD) also provide them.
+ *
+ * We use multiple detection methods for maximum compatibility:
+ * 1. Check for __GLIBC_USE_LIB_EXT2 (glibc's internal macro)
+ * 2. Check glibc version directly
+ * 3. Check for BSD systems
+ */
+
+/* Check if system already provides strlcpy/strlcat */
+#if defined(__GLIBC__)
+    /* glibc detection */
+    #include <features.h>
+    #if defined(__GLIBC_USE_LIB_EXT2) && __GLIBC_USE_LIB_EXT2
+        /* glibc has strlcpy/strlcat via _GNU_SOURCE or similar */
+        #define HAVE_SYSTEM_STRLCPY 1
+    #elif __GLIBC__ > 2 || (__GLIBC__ == 2 && __GLIBC_MINOR__ >= 38)
+        /* glibc 2.38+ has strlcpy/strlcat */
+        #define HAVE_SYSTEM_STRLCPY 1
+    #endif
+#endif
+
+/* BSD systems have strlcpy/strlcat */
+#if defined(__APPLE__) || defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__NetBSD__) || defined(__DragonFly__)
+    #define HAVE_SYSTEM_STRLCPY 1
+#endif
+
+/* Only define our own implementations if the system doesn't provide them */
+#ifndef HAVE_SYSTEM_STRLCPY
 
 /*
  * Copy src to string dst of size siz.  At most siz-1 characters
@@ -92,5 +121,6 @@ inline size_t strlcat(char *dst, const char *src, size_t siz)
     return(dlen + (s - src)); /* count does not include NUL */
 }
 
-#endif // glibc version check
-#endif // BITCOIN_STRLCPY_H
+#endif /* HAVE_SYSTEM_STRLCPY */
+
+#endif /* BITCOIN_STRLCPY_H */
