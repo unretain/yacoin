@@ -536,13 +536,13 @@ void PrintExceptionContinue(const std::exception* pex, const char* pszThread)
 
 fs::path GetDefaultDataDir()
 {
-    // Windows < Vista: C:\Documents and Settings\Username\Application Data\Yacoin
-    // Windows >= Vista: C:\Users\Username\AppData\Roaming\Yacoin
-    // Mac: ~/Library/Application Support/Yacoin
-    // Unix: ~/.Yacoin
+    // Windows < Vista: C:\Documents and Settings\Username\Application Data\Scrypt
+    // Windows >= Vista: C:\Users\Username\AppData\Roaming\Scrypt
+    // Mac: ~/Library/Application Support/Scrypt
+    // Unix: ~/.scrypt
 #ifdef WIN32
     // Windows
-    return GetSpecialFolderPath(CSIDL_APPDATA) / "Yacoin";
+    return GetSpecialFolderPath(CSIDL_APPDATA) / "Scrypt";
 #else
     fs::path pathRet;
     char* pszHome = getenv("HOME");
@@ -552,10 +552,10 @@ fs::path GetDefaultDataDir()
         pathRet = fs::path(pszHome);
 #ifdef MAC_OSX
     // Mac
-    return pathRet / "Library/Application Support/Yacoin";
+    return pathRet / "Library/Application Support/Scrypt";
 #else
     // Unix
-    return pathRet / ".yacoin";
+    return pathRet / ".scrypt";
 #endif
 #endif
 }
