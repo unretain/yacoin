@@ -168,10 +168,10 @@ public:
         genesis = CreateGenesisBlock(nGenesisTime, nGenesisNonce, 0x1e0fffff, 1);
 
         // Mine genesis if nonce is placeholder (0)
-        // Use easier target for genesis mining (only needs 1 leading zero)
+        // Use maximum target - accepts first hash (instant)
         if (nGenesisNonce == 0) {
             arith_uint256 easyTarget;
-            easyTarget.SetCompact(0x1f0fffff);  // Much easier - finds in seconds
+            easyTarget.SetCompact(0x207fffff);  // Maximum - accepts ANY hash
             MineGenesisBlock(genesis, easyTarget);
         }
 
