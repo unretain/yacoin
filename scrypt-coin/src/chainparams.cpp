@@ -107,10 +107,10 @@ static void MineGenesisBlock(CBlock& genesis, const arith_uint256& bnTarget)
 static const char* pszTimestamp = "Scrypt Coin Launch - GPU Mining for Everyone - Feb 2026";
 static const uint32_t nGenesisTime = 1738886400;  // Feb 7, 2026 00:00:00 UTC
 
-// These will be filled in after mining the genesis block
-static uint256 hashGenesisBlock = uint256S("0x0000000000000000000000000000000000000000000000000000000000000000");
-static uint32_t nGenesisNonce = 0;
-static uint256 hashGenesisMerkleRoot = uint256S("0x0000000000000000000000000000000000000000000000000000000000000000");
+// Genesis block - MINED
+static uint256 hashGenesisBlock = uint256S("0x2e1027aba14af0d4ffa1515f5f862017b17b0dde43158bef8fb75b4125424c9e");
+static uint32_t nGenesisNonce = 1;
+static uint256 hashGenesisMerkleRoot = uint256S("0xf1532ab75adc9e3a21ea5e5b22c82da2221ae588cc4b0494ae09c6ff1eb81a6e");
 
 // AdaptivePow parameters
 static const uint64_t ADAPTIVEPOW_DAG_BASE_SIZE = 1ULL << 30;  // 1 GB
@@ -206,23 +206,15 @@ public:
         // Genesis block - easy difficulty for instant mining
         genesis = CreateGenesisBlock(nGenesisTime, nGenesisNonce, 0x207fffff, 1);
 
-        // Mine genesis if nonce is placeholder (0)
-        if (nGenesisNonce == 0) {
-            arith_uint256 genesisTarget;
-            genesisTarget.SetCompact(0x207fffff);
-            MineGenesisBlock(genesis, genesisTarget);
-        }
-
         consensus.hashGenesisBlock = genesis.GetHash();
 
-        // These assertions will fail until genesis is mined
-        // assert(consensus.hashGenesisBlock == hashGenesisBlock);
-        // assert(genesis.hashMerkleRoot == hashGenesisMerkleRoot);
+        // Verify genesis block
+        assert(consensus.hashGenesisBlock == hashGenesisBlock);
+        assert(genesis.hashMerkleRoot == hashGenesisMerkleRoot);
 
-        // DNS seeds - to be added
+        // Seed nodes
         vSeeds.clear();
-        // vSeeds.emplace_back("seed.scrypt.org");
-        // vSeeds.emplace_back("dnsseed.scrypt.org");
+        vSeeds.emplace_back("76.13.31.72");  // Main seed node
 
         // Address prefixes
         base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1, 63);   // S
