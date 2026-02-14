@@ -20,6 +20,7 @@ jobs:
             libdb-dev libdb++-dev libminiupnpc-dev libzmq3-dev
 
       - name: Build
+        working-directory: scrypt-coin
         run: |
           chmod +x autogen.sh share/*.sh build-aux/*
           ./autogen.sh
@@ -30,8 +31,8 @@ jobs:
       - name: Package
         run: |
           mkdir -p scrypt-${{ github.ref_name }}-linux-x64
-          cp src/scryptd src/scrypt-cli scrypt-${{ github.ref_name }}-linux-x64/
-          cp README.md scrypt-${{ github.ref_name }}-linux-x64/ || true
+          cp scrypt-coin/src/scryptd scrypt-coin/src/scrypt-cli scrypt-${{ github.ref_name }}-linux-x64/
+          cp scrypt-coin/README.md scrypt-${{ github.ref_name }}-linux-x64/ || true
           tar -czvf scrypt-${{ github.ref_name }}-linux-x64.tar.gz scrypt-${{ github.ref_name }}-linux-x64
 
       - name: Upload artifact
