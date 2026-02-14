@@ -214,7 +214,7 @@ public:
 
         // Seed nodes
         vSeeds.clear();
-        vSeeds.emplace_back("76.13.31.72");  // Main seed node
+        vSeeds.emplace_back("76.13.31.72", true);  // Main seed node
 
         // Address prefixes
         base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1, 63);   // S
