@@ -43,3 +43,8 @@ scrypt-coin/src/.deps/
 scrypt-coin/src/.libs/
 scrypt-coin/config.log
 scrypt-coin/config.status
+
+# Build directories
+build/
+*/build/
+

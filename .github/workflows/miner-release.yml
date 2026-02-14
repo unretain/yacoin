@@ -24,6 +24,7 @@ jobs:
       - name: Configure CMake
         working-directory: yacoin-gpu-miner
         run: |
+          Remove-Item -Recurse -Force build -ErrorAction SilentlyContinue
           mkdir build
           cd build
           cmake .. -G "Visual Studio 17 2022" -DWITH_CUDA=ON -DCMAKE_CUDA_ARCHITECTURES="61;70;75;80;86;89;90"
