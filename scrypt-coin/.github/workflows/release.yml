@@ -1,0 +1,59 @@
+name: Build Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential libtool autotools-dev automake pkg-config \
+            libssl-dev libevent-dev bsdmainutils libboost-all-dev \
+            libdb-dev libdb++-dev libminiupnpc-dev libzmq3-dev
+
+      - name: Build
+        run: |
+          chmod +x autogen.sh share/*.sh build-aux/*
+          ./autogen.sh
+          ./configure --without-gui --disable-tests
+          make -j$(nproc)
+          strip src/scryptd src/scrypt-cli
+
+      - name: Package
+        run: |
+          mkdir -p scrypt-${{ github.ref_name }}-linux-x64
+          cp src/scryptd src/scrypt-cli scrypt-${{ github.ref_name }}-linux-x64/
+          cp README.md scrypt-${{ github.ref_name }}-linux-x64/ || true
+          tar -czvf scrypt-${{ github.ref_name }}-linux-x64.tar.gz scrypt-${{ github.ref_name }}-linux-x64
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: scrypt-linux-x64
+          path: scrypt-${{ github.ref_name }}-linux-x64.tar.gz
+
+  create-release:
+    needs: [build-linux]
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    permissions:
+      contents: write
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            scrypt-linux-x64/*.tar.gz
+          draft: false
+          prerelease: false
