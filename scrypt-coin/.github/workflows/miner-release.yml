@@ -1,0 +1,110 @@
+name: Build GPU Miner
+
+on:
+  push:
+    tags:
+      - 'miner-v*'
+  workflow_dispatch:
+
+jobs:
+  build-windows:
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup CUDA
+        uses: Jimver/cuda-toolkit@v0.2.16
+        with:
+          cuda: '12.4.0'
+          method: 'network'
+
+      - name: Setup MSVC
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Configure CMake
+        working-directory: yacoin-gpu-miner
+        run: |
+          mkdir build
+          cd build
+          cmake .. -G "Visual Studio 17 2022" -DWITH_CUDA=ON -DCMAKE_CUDA_ARCHITECTURES="61;70;75;80;86;89;90"
+
+      - name: Build
+        working-directory: yacoin-gpu-miner
+        run: |
+          cd build
+          cmake --build . --config Release
+
+      - name: Package
+        run: |
+          mkdir release
+          copy yacoin-gpu-miner\build\Release\scrypt-miner.exe release\
+          copy yacoin-gpu-miner\README.md release\
+          Compress-Archive -Path release\* -DestinationPath scrypt-miner-windows-x64.zip
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: scrypt-miner-windows-x64
+          path: scrypt-miner-windows-x64.zip
+
+  build-linux:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup CUDA
+        uses: Jimver/cuda-toolkit@v0.2.16
+        with:
+          cuda: '12.4.0'
+          method: 'network'
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake
+
+      - name: Configure CMake
+        working-directory: yacoin-gpu-miner
+        run: |
+          mkdir build
+          cd build
+          cmake .. -DWITH_CUDA=ON -DCMAKE_CUDA_ARCHITECTURES="61;70;75;80;86;89;90"
+
+      - name: Build
+        working-directory: yacoin-gpu-miner
+        run: |
+          cd build
+          make -j$(nproc)
+          strip scrypt-miner
+
+      - name: Package
+        run: |
+          mkdir -p release
+          cp yacoin-gpu-miner/build/scrypt-miner release/
+          cp yacoin-gpu-miner/README.md release/
+          tar -czvf scrypt-miner-linux-x64.tar.gz -C release .
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: scrypt-miner-linux-x64
+          path: scrypt-miner-linux-x64.tar.gz
+
+  create-release:
+    needs: [build-windows, build-linux]
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    permissions:
+      contents: write
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            scrypt-miner-windows-x64/scrypt-miner-windows-x64.zip
+            scrypt-miner-linux-x64/scrypt-miner-linux-x64.tar.gz
+          draft: false
+          prerelease: false
