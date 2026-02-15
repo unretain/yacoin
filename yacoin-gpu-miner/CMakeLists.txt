@@ -37,9 +37,8 @@ if(WITH_CUDA)
     add_library(cuda_miner STATIC ${CUDA_SOURCES})
     target_include_directories(cuda_miner PRIVATE src)
     set_target_properties(cuda_miner PROPERTIES
-        CUDA_SEPARABLE_COMPILATION ON
-        # Support: Pascal (10xx), Volta (Titan V), Turing (20xx), Ampere (30xx), Ada (40xx)
-        CUDA_ARCHITECTURES "61;70;75;80;86;89;90"
+        # Support: Pascal (10xx), Volta (Titan V), Turing (20xx), Ampere (30xx), Ada (40xx), Blackwell (50xx)
+        CUDA_ARCHITECTURES "61;70;75;80;86;89;90;100"
     )
 
     add_definitions(-DWITH_CUDA)
