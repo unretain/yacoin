@@ -1,7 +1,7 @@
 /*
- * Scrypt Coin GPU Miner - Main Entry Point
+ * YaCoin GPU Miner - Main Entry Point
  *
- * AdaptivePow algorithm - GPU mining for Scrypt Coin
+ * AdaptivePow algorithm - GPU mining for YaCoin
  * Supports CUDA (NVIDIA) and OpenCL (AMD)
  */
 
@@ -25,10 +25,10 @@
 #include "core/stratum.h"
 
 // Version
-#define SCRYPT_MINER_VERSION "1.0.0"
+#define YACOIN_MINER_VERSION "1.0.0"
 
-// Genesis time for Scrypt Coin (Feb 7, 2026 00:00:00 UTC)
-#define SCRYPT_GENESIS_TIME 1738886400ULL
+// Genesis time for YaCoin (Feb 7, 2026 00:00:00 UTC)
+#define YACOIN_GENESIS_TIME 1738886400ULL
 
 // Global state
 static volatile bool g_running = true;

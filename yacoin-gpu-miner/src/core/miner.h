@@ -1,10 +1,10 @@
 /*
- * Scrypt Coin GPU Miner - Core Header
+ * YaCoin GPU Miner - Core Header
  * AdaptivePow Algorithm Implementation
  */
 
-#ifndef SCRYPT_MINER_H
-#define SCRYPT_MINER_H
+#ifndef YACOIN_MINER_H
+#define YACOIN_MINER_H
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -21,7 +21,7 @@ extern "C" {
 #define ADAPTIVEPOW_DAG_LOADS      64
 #define ADAPTIVEPOW_MATH_OPS       16
 
-// Scrypt Coin block header (112 bytes for AdaptivePow)
+// YaCoin block header (112 bytes for AdaptivePow)
 typedef struct {
     int32_t  nVersion;          // 4 bytes
     uint8_t  hashPrevBlock[32]; // 32 bytes

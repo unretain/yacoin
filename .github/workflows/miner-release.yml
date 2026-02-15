@@ -38,16 +38,16 @@ jobs:
       - name: Package
         run: |
           mkdir release
-          copy yacoin-gpu-miner\build\Release\scrypt-miner.exe release\
+          copy yacoin-gpu-miner\build\Release\yacoin-miner.exe release\
           copy yacoin-gpu-miner\README.md release\
           copy "$env:CUDA_PATH\bin\cudart64_12.dll" release\
-          Compress-Archive -Path release\* -DestinationPath scrypt-miner-windows-x64.zip
+          Compress-Archive -Path release\* -DestinationPath yacoin-miner-windows-x64.zip
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: scrypt-miner-windows-x64
-          path: scrypt-miner-windows-x64.zip
+          name: yacoin-miner-windows-x64
+          path: yacoin-miner-windows-x64.zip
 
   build-linux:
     runs-on: ubuntu-22.04
@@ -77,20 +77,20 @@ jobs:
         run: |
           cd build
           make -j$(nproc)
-          strip scrypt-miner
+          strip yacoin-miner
 
       - name: Package
         run: |
           mkdir -p release
-          cp yacoin-gpu-miner/build/scrypt-miner release/
+          cp yacoin-gpu-miner/build/yacoin-miner release/
           cp yacoin-gpu-miner/README.md release/
-          tar -czvf scrypt-miner-linux-x64.tar.gz -C release .
+          tar -czvf yacoin-miner-linux-x64.tar.gz -C release .
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: scrypt-miner-linux-x64
-          path: scrypt-miner-linux-x64.tar.gz
+          name: yacoin-miner-linux-x64
+          path: yacoin-miner-linux-x64.tar.gz
 
   create-release:
     needs: [build-windows, build-linux]
@@ -106,7 +106,7 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            scrypt-miner-windows-x64/scrypt-miner-windows-x64.zip
-            scrypt-miner-linux-x64/scrypt-miner-linux-x64.tar.gz
+            yacoin-miner-windows-x64/yacoin-miner-windows-x64.zip
+            yacoin-miner-linux-x64/yacoin-miner-linux-x64.tar.gz
           draft: false
           prerelease: false

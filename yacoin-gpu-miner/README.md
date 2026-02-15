@@ -1,6 +1,6 @@
-# Scrypt Coin GPU Miner
+# YaCoin GPU Miner
 
-GPU miner for Scrypt Coin's AdaptivePow algorithm.
+GPU miner for YaCoin's AdaptivePow algorithm.
 
 ## Features
 
@@ -16,7 +16,7 @@ GPU miner for Scrypt Coin's AdaptivePow algorithm.
 AdaptivePow combines:
 - **Shared DAG** (like Ethash) - GPU-friendly, thousands of threads
 - **Random execution** (like KawPow) - ASIC-resistant
-- **Time-based memory growth** (like YaCoin N-factor) - Future-proof
+- **Time-based memory growth** (like N-factor) - Future-proof
 
 ### DAG Size Schedule
 
@@ -64,19 +64,19 @@ make -j$(nproc)
 ### Solo Mining (to your own node)
 
 ```bash
-./scrypt-miner --solo \
+./yacoin-miner --solo \
   -o http://127.0.0.1:9332 \
-  -u scryptrpc \
+  -u yacrpc \
   -p yourpassword \
-  --address SYourWalletAddress
+  --address YYourWalletAddress
 ```
 
 ### Pool Mining
 
 ```bash
-./scrypt-miner \
-  -o stratum+tcp://pool.scrypt.org:3333 \
-  -u SYourWalletAddress \
+./yacoin-miner \
+  -o stratum+tcp://pool.yacoin.org:3333 \
+  -u YYourWalletAddress \
   -p x
 ```
 

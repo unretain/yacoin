@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.18)
-project(scrypt-miner LANGUAGES CXX)
+project(yacoin-miner LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -56,49 +56,49 @@ if(WITH_OPENCL)
 endif()
 
 # Main executable
-add_executable(scrypt-miner ${CORE_SOURCES} ${CORE_HEADERS})
+add_executable(yacoin-miner ${CORE_SOURCES} ${CORE_HEADERS})
 
-target_include_directories(scrypt-miner PRIVATE src)
+target_include_directories(yacoin-miner PRIVATE src)
 
 # Link libraries
-target_link_libraries(scrypt-miner PRIVATE Threads::Threads)
+target_link_libraries(yacoin-miner PRIVATE Threads::Threads)
 
 if(WITH_CUDA)
-    target_link_libraries(scrypt-miner PRIVATE cuda_miner CUDA::cudart)
+    target_link_libraries(yacoin-miner PRIVATE cuda_miner CUDA::cudart)
 endif()
 
 if(WITH_OPENCL)
-    target_link_libraries(scrypt-miner PRIVATE OpenCL::OpenCL)
+    target_link_libraries(yacoin-miner PRIVATE OpenCL::OpenCL)
 endif()
 
 # Windows specific
 if(WIN32)
-    target_link_libraries(scrypt-miner PRIVATE ws2_32)
+    target_link_libraries(yacoin-miner PRIVATE ws2_32)
 endif()
 
 # macOS/Linux specific
 if(UNIX AND NOT APPLE)
     find_package(OpenSSL)
     if(OpenSSL_FOUND)
-        target_link_libraries(scrypt-miner PRIVATE OpenSSL::SSL OpenSSL::Crypto)
+        target_link_libraries(yacoin-miner PRIVATE OpenSSL::SSL OpenSSL::Crypto)
     endif()
 endif()
 
 # Install targets
-install(TARGETS scrypt-miner RUNTIME DESTINATION bin)
+install(TARGETS yacoin-miner RUNTIME DESTINATION bin)
 
 # Copy OpenCL kernels for runtime loading
 if(WITH_OPENCL)
     install(FILES
         src/opencl/adaptivepow.cl
-        DESTINATION share/scrypt-miner
+        DESTINATION share/yacoin-miner
     )
 endif()
 
 # Print configuration
 message(STATUS "")
 message(STATUS "===========================================")
-message(STATUS "  Scrypt Coin GPU Miner Configuration")
+message(STATUS "  YaCoin GPU Miner Configuration")
 message(STATUS "===========================================")
 message(STATUS "  CUDA support (NVIDIA): ${WITH_CUDA}")
 message(STATUS "  OpenCL support (AMD):  ${WITH_OPENCL}")

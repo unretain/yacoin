@@ -235,7 +235,7 @@ int stratum_subscribe(StratumClient *client)
     client->state = STRATUM_SUBSCRIBING;
 
     // Send mining.subscribe
-    if (send_json(client, "mining.subscribe", "[\"scptminer/1.0.0\"]") != 0) {
+    if (send_json(client, "mining.subscribe", "[\"yacminer/1.0.0\"]") != 0) {
         return -1;
     }
 

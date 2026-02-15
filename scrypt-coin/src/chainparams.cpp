@@ -1,6 +1,6 @@
 // Copyright (c) 2010 Satoshi Nakamoto
 // Copyright (c) 2009-2016 The Bitcoin Core developers
-// Copyright (c) 2024-2026 The Scrypt Core developers
+// Copyright (c) 2024-2026 The YaCoin Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -94,17 +94,17 @@ static void MineGenesisBlock(CBlock& genesis, const arith_uint256& bnTarget)
 }
 
 //
-// SCRYPT COIN - A new cryptocurrency with AdaptivePow
+// YACOIN - GPU-mineable cryptocurrency with AdaptivePow
 //
 // Features:
 // - GPU-mineable (shared DAG model)
 // - Time-based memory growth (N-factor concept)
 // - ASIC-resistant (random program execution)
-// - Token support (inherited from YaCoin)
+// - Native token/NFT support
 //
 
 // Genesis block parameters - TO BE MINED
-static const char* pszTimestamp = "Scrypt Coin Launch - GPU Mining for Everyone - Feb 2026";
+static const char* pszTimestamp = "YaCoin Reborn - GPU Mining for Everyone - Feb 2026";
 static const uint32_t nGenesisTime = 1738886400;  // Feb 7, 2026 00:00:00 UTC
 
 // Genesis block - MINED
@@ -193,13 +193,13 @@ public:
         consensus.vDeployments[Consensus::DEPLOYMENT_CSV].nTimeout = Consensus::BIP9Deployment::NO_TIMEOUT;
 
         /**
-         * Network magic bytes - unique to Scrypt
-         * "SCPT" in hex (for SCRYPT ticker)
+         * Network magic bytes - YaCoin
+         * "YACN" in hex
          */
-        pchMessageStart[0] = 0x53;  // S
-        pchMessageStart[1] = 0x43;  // C
-        pchMessageStart[2] = 0x50;  // P
-        pchMessageStart[3] = 0x54;  // T
+        pchMessageStart[0] = 0x59;  // Y
+        pchMessageStart[1] = 0x41;  // A
+        pchMessageStart[2] = 0x43;  // C
+        pchMessageStart[3] = 0x4e;  // N
         nDefaultPort = 9333;
         nPruneAfterHeight = 100000;
 
@@ -288,9 +288,9 @@ public:
 
         // Testnet magic
         pchMessageStart[0] = 0x74;  // t
-        pchMessageStart[1] = 0x53;  // S
-        pchMessageStart[2] = 0x43;  // C
-        pchMessageStart[3] = 0x52;  // R
+        pchMessageStart[1] = 0x59;  // Y
+        pchMessageStart[2] = 0x41;  // A
+        pchMessageStart[3] = 0x43;  // C
         nDefaultPort = 19333;
         nPruneAfterHeight = 1000;
 
@@ -366,9 +366,9 @@ public:
         consensus.vDeployments[Consensus::DEPLOYMENT_CSV].nTimeout = Consensus::BIP9Deployment::NO_TIMEOUT;
 
         pchMessageStart[0] = 0x72;  // r
-        pchMessageStart[1] = 0x53;  // S
-        pchMessageStart[2] = 0x43;  // C
-        pchMessageStart[3] = 0x52;  // R
+        pchMessageStart[1] = 0x59;  // Y
+        pchMessageStart[2] = 0x41;  // A
+        pchMessageStart[3] = 0x43;  // C
         nDefaultPort = 29333;
         nPruneAfterHeight = 1000;
 
