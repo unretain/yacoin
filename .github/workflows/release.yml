@@ -20,26 +20,26 @@ jobs:
             libdb-dev libdb++-dev libminiupnpc-dev libzmq3-dev
 
       - name: Build
-        working-directory: scrypt-coin
+        working-directory: yacoin
         run: |
           chmod +x autogen.sh share/*.sh build-aux/*
           ./autogen.sh
           ./configure --without-gui --disable-tests
           make -j$(nproc)
-          strip src/scryptd src/scrypt-cli
+          strip src/yacoind src/yacoin-cli
 
       - name: Package
         run: |
-          mkdir -p scrypt-${{ github.ref_name }}-linux-x64
-          cp scrypt-coin/src/scryptd scrypt-coin/src/scrypt-cli scrypt-${{ github.ref_name }}-linux-x64/
-          cp scrypt-coin/README.md scrypt-${{ github.ref_name }}-linux-x64/ || true
-          tar -czvf scrypt-${{ github.ref_name }}-linux-x64.tar.gz scrypt-${{ github.ref_name }}-linux-x64
+          mkdir -p yacoin-${{ github.ref_name }}-linux-x64
+          cp yacoin/src/yacoind yacoin/src/yacoin-cli yacoin-${{ github.ref_name }}-linux-x64/
+          cp yacoin/README.md yacoin-${{ github.ref_name }}-linux-x64/ || true
+          tar -czvf yacoin-${{ github.ref_name }}-linux-x64.tar.gz yacoin-${{ github.ref_name }}-linux-x64
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: scrypt-linux-x64
-          path: scrypt-${{ github.ref_name }}-linux-x64.tar.gz
+          name: yacoin-linux-x64
+          path: yacoin-${{ github.ref_name }}-linux-x64.tar.gz
 
   create-release:
     needs: [build-linux]
@@ -55,6 +55,6 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            scrypt-linux-x64/*.tar.gz
+            yacoin-linux-x64/*.tar.gz
           draft: false
           prerelease: false

@@ -1,7 +1,7 @@
 {
-  "name": "scrypt-dex",
+  "name": "yacoin-faucet",
   "version": "1.0.0",
-  "description": "Simple DEX for Scrypt Coin token trading",
+  "description": "YaCoin Testnet Faucet - Get free testnet coins",
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",
@@ -10,9 +10,8 @@
   "dependencies": {
     "express": "^4.18.2",
     "axios": "^1.6.0",
-    "socket.io": "^4.7.2",
     "cors": "^2.8.5",
-    "uuid": "^9.0.0"
+    "express-rate-limit": "^7.1.5"
   },
   "devDependencies": {
     "nodemon": "^3.0.1"

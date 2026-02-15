@@ -8,9 +8,9 @@ package-lock.json
 *.so
 *.exe
 *.dll
-scrypt-coin/src/scryptd
-scrypt-coin/src/scrypt-cli
-scrypt-coin/src/scrypt-tx
+yacoin/src/yacoind
+yacoin/src/yacoin-cli
+yacoin/src/yacoin-tx
 
 # IDE
 .vscode/
@@ -27,7 +27,7 @@ Thumbs.db
 debug.log
 
 # Data
-.scrypt/
+.yacoin/
 *.dat
 
 # Uploads
@@ -38,13 +38,12 @@ uploads/
 .env.local
 
 # Build artifacts
-scrypt-coin/autom4te.cache/
-scrypt-coin/src/.deps/
-scrypt-coin/src/.libs/
-scrypt-coin/config.log
-scrypt-coin/config.status
+yacoin/autom4te.cache/
+yacoin/src/.deps/
+yacoin/src/.libs/
+yacoin/config.log
+yacoin/config.status
 
 # Build directories
 build/
 */build/
-

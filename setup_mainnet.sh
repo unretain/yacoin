@@ -1,13 +1,13 @@
 #!/bin/bash
 #
-# SCRYPT COIN - Full Mainnet Setup Script
+# YACOIN - Full Mainnet Setup Script
 # Run this on your VPS to set up the complete network
 #
 
 set -e
 
 echo "==========================================="
-echo "  SCRYPT COIN - FULL NETWORK SETUP"
+echo "  YACOIN - FULL NETWORK SETUP"
 echo "==========================================="
 echo ""
 
@@ -18,10 +18,10 @@ YELLOW='\033[1;33m'
 NC='\033[0m'
 
 # Configuration
-SCRYPT_USER="scrypt"
-SCRYPT_DIR="/home/$SCRYPT_USER"
-DATA_DIR="/home/$SCRYPT_USER/.scrypt"
-RPC_USER="scryptrpc"
+YACOIN_USER="yacoin"
+YACOIN_DIR="/home/$YACOIN_USER"
+DATA_DIR="/home/$YACOIN_USER/.yacoin"
+RPC_USER="yacrpc"
 RPC_PASS=$(openssl rand -hex 16)
 
 echo -e "${YELLOW}Step 1: Installing dependencies...${NC}"
@@ -38,8 +38,8 @@ sudo apt-get install -y nodejs
 echo -e "${GREEN}Dependencies installed!${NC}"
 echo ""
 
-echo -e "${YELLOW}Step 2: Building Scrypt Coin node...${NC}"
-cd $SCRYPT_DIR/scrypt-coin
+echo -e "${YELLOW}Step 2: Building YaCoin node...${NC}"
+cd $YACOIN_DIR/yacoin
 
 # Generate build system
 ./autogen.sh
@@ -93,8 +93,8 @@ echo ""
 echo -e "${YELLOW}Step 6: Creating configuration...${NC}"
 mkdir -p $DATA_DIR
 
-cat > $DATA_DIR/scrypt.conf << EOF
-# Scrypt Coin Configuration
+cat > $DATA_DIR/yacoin.conf << EOF
+# YaCoin Configuration
 # Generated $(date)
 
 # Network
@@ -127,16 +127,16 @@ echo "RPC Pass: $RPC_PASS"
 echo ""
 
 echo -e "${YELLOW}Step 7: Creating systemd service...${NC}"
-sudo tee /etc/systemd/system/scryptd.service > /dev/null << EOF
+sudo tee /etc/systemd/system/yacoind.service > /dev/null << EOF
 [Unit]
-Description=Scrypt Coin Daemon
+Description=YaCoin Daemon
 After=network.target
 
 [Service]
 Type=forking
-User=$SCRYPT_USER
-ExecStart=$SCRYPT_DIR/scrypt-coin/src/scryptd -daemon -conf=$DATA_DIR/scrypt.conf -datadir=$DATA_DIR
-ExecStop=$SCRYPT_DIR/scrypt-coin/src/scrypt-cli stop
+User=$YACOIN_USER
+ExecStart=$YACOIN_DIR/yacoin/src/yacoind -daemon -conf=$DATA_DIR/yacoin.conf -datadir=$DATA_DIR
+ExecStop=$YACOIN_DIR/yacoin/src/yacoin-cli stop
 Restart=on-failure
 RestartSec=30
 TimeoutStartSec=60
@@ -147,34 +147,34 @@ WantedBy=multi-user.target
 EOF
 
 sudo systemctl daemon-reload
-sudo systemctl enable scryptd
+sudo systemctl enable yacoind
 echo -e "${GREEN}Systemd service created!${NC}"
 echo ""
 
 echo -e "${YELLOW}Step 8: Starting node...${NC}"
-sudo systemctl start scryptd
+sudo systemctl start yacoind
 sleep 5
 
 # Check if running
-if $SCRYPT_DIR/scrypt-coin/src/scrypt-cli getblockchaininfo > /dev/null 2>&1; then
+if $YACOIN_DIR/yacoin/src/yacoin-cli getblockchaininfo > /dev/null 2>&1; then
     echo -e "${GREEN}Node is running!${NC}"
 else
     echo -e "${RED}Node failed to start. Check logs:${NC}"
-    echo "journalctl -u scryptd -f"
+    echo "journalctl -u yacoind -f"
 fi
 echo ""
 
 echo -e "${YELLOW}Step 9: Setting up web apps...${NC}"
 
 # Update web app configs with RPC credentials
-for app in scrypt-explorer scrypt-launchpad scrypt-dex scrypt-faucet; do
-    if [ -d "$SCRYPT_DIR/$app" ]; then
-        cat > $SCRYPT_DIR/$app/.env << EOF
+for app in yacoin-explorer yacoin-launchpad yacoin-dex yacoin-faucet; do
+    if [ -d "$YACOIN_DIR/$app" ]; then
+        cat > $YACOIN_DIR/$app/.env << EOF
 RPC_URL=http://127.0.0.1:9332
 RPC_USER=$RPC_USER
 RPC_PASS=$RPC_PASS
 EOF
-        cd $SCRYPT_DIR/$app
+        cd $YACOIN_DIR/$app
         npm install --production
     fi
 done
@@ -185,15 +185,15 @@ echo ""
 echo -e "${YELLOW}Step 10: Creating web app services...${NC}"
 
 # Explorer service
-sudo tee /etc/systemd/system/scrypt-explorer.service > /dev/null << EOF
+sudo tee /etc/systemd/system/yacoin-explorer.service > /dev/null << EOF
 [Unit]
-Description=Scrypt Explorer
-After=scryptd.service
+Description=YaCoin Explorer
+After=yacoind.service
 
 [Service]
 Type=simple
-User=$SCRYPT_USER
-WorkingDirectory=$SCRYPT_DIR/scrypt-explorer
+User=$YACOIN_USER
+WorkingDirectory=$YACOIN_DIR/yacoin-explorer
 ExecStart=/usr/bin/node src/server.js
 Restart=on-failure
 Environment=PORT=3001
@@ -203,15 +203,15 @@ WantedBy=multi-user.target
 EOF
 
 # Launchpad service
-sudo tee /etc/systemd/system/scrypt-launchpad.service > /dev/null << EOF
+sudo tee /etc/systemd/system/yacoin-launchpad.service > /dev/null << EOF
 [Unit]
-Description=Scrypt Token Launchpad
-After=scryptd.service
+Description=YaCoin Token Launchpad
+After=yacoind.service
 
 [Service]
 Type=simple
-User=$SCRYPT_USER
-WorkingDirectory=$SCRYPT_DIR/scrypt-launchpad
+User=$YACOIN_USER
+WorkingDirectory=$YACOIN_DIR/yacoin-launchpad
 ExecStart=/usr/bin/node src/server.js
 Restart=on-failure
 Environment=PORT=3002
@@ -221,15 +221,15 @@ WantedBy=multi-user.target
 EOF
 
 # DEX service
-sudo tee /etc/systemd/system/scrypt-dex.service > /dev/null << EOF
+sudo tee /etc/systemd/system/yacoin-dex.service > /dev/null << EOF
 [Unit]
-Description=Scrypt DEX
-After=scryptd.service
+Description=YaCoin DEX
+After=yacoind.service
 
 [Service]
 Type=simple
-User=$SCRYPT_USER
-WorkingDirectory=$SCRYPT_DIR/scrypt-dex
+User=$YACOIN_USER
+WorkingDirectory=$YACOIN_DIR/yacoin-dex
 ExecStart=/usr/bin/node src/server.js
 Restart=on-failure
 Environment=PORT=3003
@@ -239,15 +239,15 @@ WantedBy=multi-user.target
 EOF
 
 # Faucet service
-sudo tee /etc/systemd/system/scrypt-faucet.service > /dev/null << EOF
+sudo tee /etc/systemd/system/yacoin-faucet.service > /dev/null << EOF
 [Unit]
-Description=Scrypt Faucet
-After=scryptd.service
+Description=YaCoin Faucet
+After=yacoind.service
 
 [Service]
 Type=simple
-User=$SCRYPT_USER
-WorkingDirectory=$SCRYPT_DIR/scrypt-faucet
+User=$YACOIN_USER
+WorkingDirectory=$YACOIN_DIR/yacoin-faucet
 ExecStart=/usr/bin/node src/server.js
 Restart=on-failure
 Environment=PORT=3004
@@ -257,14 +257,14 @@ WantedBy=multi-user.target
 EOF
 
 sudo systemctl daemon-reload
-sudo systemctl enable scrypt-explorer scrypt-launchpad scrypt-dex scrypt-faucet
-sudo systemctl start scrypt-explorer scrypt-launchpad scrypt-dex scrypt-faucet
+sudo systemctl enable yacoin-explorer yacoin-launchpad yacoin-dex yacoin-faucet
+sudo systemctl start yacoin-explorer yacoin-launchpad yacoin-dex yacoin-faucet
 
 echo -e "${GREEN}Web app services created and started!${NC}"
 echo ""
 
 echo -e "${YELLOW}Step 11: Setting up nginx reverse proxy...${NC}"
-sudo tee /etc/nginx/sites-available/scrypt << EOF
+sudo tee /etc/nginx/sites-available/yacoin << EOF
 server {
     listen 80;
     server_name _;
@@ -311,7 +311,7 @@ server {
 }
 EOF
 
-sudo ln -sf /etc/nginx/sites-available/scrypt /etc/nginx/sites-enabled/
+sudo ln -sf /etc/nginx/sites-available/yacoin /etc/nginx/sites-enabled/
 sudo rm -f /etc/nginx/sites-enabled/default
 sudo nginx -t && sudo systemctl reload nginx
 
@@ -323,14 +323,14 @@ echo -e "${GREEN}  SETUP COMPLETE!${NC}"
 echo "==========================================="
 echo ""
 echo "Node Status:"
-$SCRYPT_DIR/scrypt-coin/src/scrypt-cli getblockchaininfo 2>/dev/null || echo "Node starting up..."
+$YACOIN_DIR/yacoin/src/yacoin-cli getblockchaininfo 2>/dev/null || echo "Node starting up..."
 echo ""
 echo "Services running:"
-echo "  - scryptd (blockchain node)"
-echo "  - scrypt-explorer (port 3001)"
-echo "  - scrypt-launchpad (port 3002)"
-echo "  - scrypt-dex (port 3003)"
-echo "  - scrypt-faucet (port 3004)"
+echo "  - yacoind (blockchain node)"
+echo "  - yacoin-explorer (port 3001)"
+echo "  - yacoin-launchpad (port 3002)"
+echo "  - yacoin-dex (port 3003)"
+echo "  - yacoin-faucet (port 3004)"
 echo ""
 echo "Access your apps at:"
 echo "  http://YOUR_VPS_IP/"
@@ -340,11 +340,11 @@ echo "  User: $RPC_USER"
 echo "  Pass: $RPC_PASS"
 echo ""
 echo "Useful commands:"
-echo "  scrypt-cli getblockchaininfo  - Check blockchain status"
-echo "  scrypt-cli setgenerate true 1 - Start mining"
-echo "  scrypt-cli getnewaddress      - Get new address"
-echo "  journalctl -u scryptd -f      - View node logs"
+echo "  yacoin-cli getblockchaininfo  - Check blockchain status"
+echo "  yacoin-cli setgenerate true 1 - Start mining"
+echo "  yacoin-cli getnewaddress      - Get new address"
+echo "  journalctl -u yacoind -f      - View node logs"
 echo ""
 echo "To start mining:"
-echo "  $SCRYPT_DIR/scrypt-coin/src/scrypt-cli setgenerate true 1"
+echo "  $YACOIN_DIR/yacoin/src/yacoin-cli setgenerate true 1"
 echo ""

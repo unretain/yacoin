@@ -1,7 +1,7 @@
 {
-  "name": "scrypt-explorer",
+  "name": "yacoin-explorer",
   "version": "1.0.0",
-  "description": "Block Explorer for Scrypt Coin",
+  "description": "Block Explorer for YaCoin",
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",
