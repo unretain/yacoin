@@ -40,6 +40,7 @@ jobs:
           mkdir release
           copy yacoin-gpu-miner\build\Release\scrypt-miner.exe release\
           copy yacoin-gpu-miner\README.md release\
+          copy "$env:CUDA_PATH\bin\cudart64_12.dll" release\
           Compress-Archive -Path release\* -DestinationPath scrypt-miner-windows-x64.zip
 
       - name: Upload artifact
