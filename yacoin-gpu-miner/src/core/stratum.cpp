@@ -24,7 +24,7 @@
     #define SOCKET_ERROR -1
 #endif
 
-#include <json-c/json.h>  // Or use rapidjson/nlohmann
+#include "json_minimal.h"
 
 // Internal buffer for receiving data
 #define RECV_BUFFER_SIZE 4096
@@ -85,8 +85,11 @@ static int send_json(StratumClient *client, const char *method, const char *para
     return 0;
 }
 
-// Helper: Receive and parse JSON response
-static json_object* recv_json(StratumClient *client)
+// Message buffer for received JSON
+static char msgBuffer[RECV_BUFFER_SIZE];
+
+// Helper: Receive JSON response (returns pointer to static buffer or NULL)
+static const char* recv_json(StratumClient *client)
 {
     // Receive more data if needed
     int received = recv(client->socket, recvBuffer + recvBufferLen,
@@ -104,28 +107,22 @@ static json_object* recv_json(StratumClient *client)
 
     // Extract message
     size_t msgLen = newline - recvBuffer;
-    char msgBuffer[RECV_BUFFER_SIZE];
     strncpy(msgBuffer, recvBuffer, msgLen);
     msgBuffer[msgLen] = '\0';
 
     // Shift buffer
     memmove(recvBuffer, newline + 1, recvBufferLen - msgLen - 1);
-    recvBufferLen -= (msgLen + 1);
+    recvBufferLen -= (int)(msgLen + 1);
 
     printf("Stratum RX: %s\n", msgBuffer);
 
-    // Parse JSON
-    return json_tokener_parse(msgBuffer);
+    return msgBuffer;
 }
 
 // Helper: Parse mining.notify parameters into MiningJob
-static int parse_notify(StratumClient *client, json_object *params)
+static int parse_notify(StratumClient *client, const char *params)
 {
-    if (!json_object_is_type(params, json_type_array)) {
-        return -1;
-    }
-
-    int arrayLen = json_object_array_length(params);
+    int arrayLen = json_array_length(params);
     if (arrayLen < 8) {
         return -1;
     }
@@ -133,11 +130,12 @@ static int parse_notify(StratumClient *client, json_object *params)
     MiningJob *job = &client->currentJob;
 
     // params[0] = job_id
-    const char *jobId = json_object_get_string(json_object_array_get_idx(params, 0));
-    strncpy(job->jobId, jobId, sizeof(job->jobId) - 1);
+    char jobId[64];
+    if (json_array_get_string(params, 0, jobId, sizeof(jobId)) == 0) {
+        strncpy(job->jobId, jobId, sizeof(job->jobId) - 1);
+    }
 
     // params[1] = prevhash (hex)
-    const char *prevHash = json_object_get_string(json_object_array_get_idx(params, 1));
     // Convert hex to bytes (implementation needed)
 
     // params[2] = coinbase1
@@ -145,15 +143,22 @@ static int parse_notify(StratumClient *client, json_object *params)
     // params[4] = merkle_branch (array)
     // params[5] = version
     // params[6] = nbits
-    const char *nBits = json_object_get_string(json_object_array_get_idx(params, 6));
-    job->nBits = strtoul(nBits, NULL, 16);
+    char nBits[32];
+    if (json_array_get_string(params, 6, nBits, sizeof(nBits)) == 0) {
+        job->nBits = strtoul(nBits, NULL, 16);
+    }
 
     // params[7] = ntime
-    const char *nTime = json_object_get_string(json_object_array_get_idx(params, 7));
-    job->nTime = strtoul(nTime, NULL, 16);
+    char nTime[32];
+    if (json_array_get_string(params, 7, nTime, sizeof(nTime)) == 0) {
+        job->nTime = strtoul(nTime, NULL, 16);
+    }
 
     // params[8] = clean_jobs
-    job->cleanJobs = json_object_get_boolean(json_object_array_get_idx(params, 8));
+    int cleanJobs = 0;
+    if (json_array_get_bool(params, 8, &cleanJobs) == 0) {
+        job->cleanJobs = cleanJobs ? true : false;
+    }
 
     client->hasJob = true;
     return 0;
@@ -230,37 +235,35 @@ int stratum_subscribe(StratumClient *client)
     client->state = STRATUM_SUBSCRIBING;
 
     // Send mining.subscribe
-    if (send_json(client, "mining.subscribe", "[\"yacminer/1.0.0\"]") != 0) {
+    if (send_json(client, "mining.subscribe", "[\"scptminer/1.0.0\"]") != 0) {
         return -1;
     }
 
     // Wait for response
-    json_object *response = NULL;
+    const char *response = NULL;
     while (!response) {
         response = recv_json(client);
     }
 
-    // Parse response
-    json_object *result;
-    if (json_object_object_get_ex(response, "result", &result)) {
-        // result[0][0][1] = session_id
+    // Parse response - find "result" array
+    const char *result = json_find_key(response, "result");
+    if (result) {
         // result[1] = extranonce1
         // result[2] = extranonce2_size
-        json_object *extraNonce1 = json_object_array_get_idx(result, 1);
-        json_object *extraNonce2Size = json_object_array_get_idx(result, 2);
+        char extraNonce1[64];
+        int extraNonce2Size = 0;
 
-        if (extraNonce1 && extraNonce2Size) {
-            strncpy(client->extraNonce1,
-                    json_object_get_string(extraNonce1),
-                    sizeof(client->extraNonce1) - 1);
-            client->extraNonce2Size = json_object_get_int(extraNonce2Size);
-
-            printf("Stratum: Subscribed - extraNonce1=%s, extraNonce2Size=%d\n",
-                   client->extraNonce1, client->extraNonce2Size);
+        if (json_array_get_string(result, 1, extraNonce1, sizeof(extraNonce1)) == 0) {
+            strncpy(client->extraNonce1, extraNonce1, sizeof(client->extraNonce1) - 1);
         }
+        if (json_array_get_int(result, 2, &extraNonce2Size) == 0) {
+            client->extraNonce2Size = extraNonce2Size;
+        }
+
+        printf("Stratum: Subscribed - extraNonce1=%s, extraNonce2Size=%d\n",
+               client->extraNonce1, client->extraNonce2Size);
     }
 
-    json_object_put(response);
     return 0;
 }
 
@@ -278,24 +281,23 @@ int stratum_authorize(StratumClient *client)
     }
 
     // Wait for response
-    json_object *response = NULL;
+    const char *response = NULL;
     while (!response) {
         response = recv_json(client);
     }
 
-    json_object *result;
-    if (json_object_object_get_ex(response, "result", &result)) {
-        if (json_object_get_boolean(result)) {
+    // Check result
+    int result = 0;
+    if (json_get_bool(response, "result", &result) == 0) {
+        if (result) {
             printf("Stratum: Authorized as %s\n", client->config.user);
             client->state = STRATUM_MINING;
         } else {
             fprintf(stderr, "Stratum: Authorization failed\n");
-            json_object_put(response);
             return -1;
         }
     }
 
-    json_object_put(response);
     return 0;
 }
 
@@ -305,32 +307,30 @@ int stratum_poll(StratumClient *client)
     // Set socket to non-blocking temporarily
     // (platform-specific implementation)
 
-    json_object *msg = recv_json(client);
+    const char *msg = recv_json(client);
     if (!msg) {
         return 0;  // No message
     }
 
     // Check if it's a notification
-    json_object *method;
-    if (json_object_object_get_ex(msg, "method", &method)) {
-        const char *methodStr = json_object_get_string(method);
-
+    char methodStr[64];
+    if (json_get_string(msg, "method", methodStr, sizeof(methodStr)) == 0) {
         if (strcmp(methodStr, "mining.notify") == 0) {
-            json_object *params;
-            if (json_object_object_get_ex(msg, "params", &params)) {
+            const char *params = json_find_key(msg, "params");
+            if (params) {
                 parse_notify(client, params);
                 printf("Stratum: New job %s\n", client->currentJob.jobId);
             }
         } else if (strcmp(methodStr, "mining.set_difficulty") == 0) {
-            json_object *params;
-            if (json_object_object_get_ex(msg, "params", &params)) {
-                double diff = json_object_get_double(json_object_array_get_idx(params, 0));
+            const char *params = json_find_key(msg, "params");
+            if (params) {
+                double diff = 0;
+                json_array_get_double(params, 0, &diff);
                 printf("Stratum: Difficulty set to %.4f\n", diff);
             }
         }
     }
 
-    json_object_put(msg);
     return client->hasJob ? 1 : 0;
 }
 
@@ -344,7 +344,7 @@ int stratum_submit(StratumClient *client, const MiningResult *result)
         result->jobId,
         "0000",  // extranonce2
         client->currentJob.nTime,
-        result->nonce);
+        (uint32_t)result->nonce);
 
     if (send_json(client, "mining.submit", params) != 0) {
         return -1;
@@ -353,25 +353,24 @@ int stratum_submit(StratumClient *client, const MiningResult *result)
     client->sharesSent++;
 
     // Wait for response
-    json_object *response = NULL;
+    const char *response = NULL;
     while (!response) {
         response = recv_json(client);
     }
 
-    json_object *resultObj;
-    if (json_object_object_get_ex(response, "result", &resultObj)) {
-        if (json_object_get_boolean(resultObj)) {
+    int resultVal = 0;
+    if (json_get_bool(response, "result", &resultVal) == 0) {
+        if (resultVal) {
             client->sharesAccepted++;
             printf("Stratum: Share accepted! (%lu/%lu)\n",
-                   client->sharesAccepted, client->sharesSent);
+                   (unsigned long)client->sharesAccepted, (unsigned long)client->sharesSent);
         } else {
             client->sharesRejected++;
             printf("Stratum: Share rejected! (%lu rejected)\n",
-                   client->sharesRejected);
+                   (unsigned long)client->sharesRejected);
         }
     }
 
-    json_object_put(response);
     return 0;
 }
 

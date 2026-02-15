@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
+#include <time.h>
 
 // YaCoin chain start time (May 8, 2013)
 #define CHAIN_START_TIME 1367991200
