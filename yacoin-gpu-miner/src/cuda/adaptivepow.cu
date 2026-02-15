@@ -9,6 +9,7 @@
 
 #include <cuda_runtime.h>
 #include <stdint.h>
+#include <stdio.h>
 
 // Algorithm parameters
 #define DAG_BASE_SIZE      (1ULL << 30)  // 1 GB
