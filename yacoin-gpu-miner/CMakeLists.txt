@@ -11,12 +11,6 @@ option(WITH_OPENCL "Build with OpenCL support (AMD)" OFF)
 # Find packages
 find_package(Threads REQUIRED)
 
-# JSON library (optional)
-find_package(PkgConfig)
-if(PkgConfig_FOUND)
-    pkg_check_modules(JSON json-c)
-endif()
-
 # Source files
 set(CORE_SOURCES
     src/main.cpp
@@ -28,6 +22,7 @@ set(CORE_SOURCES
 set(CORE_HEADERS
     src/core/miner.h
     src/core/stratum.h
+    src/core/json_minimal.h
 )
 
 # CUDA support (NVIDIA)
@@ -75,11 +70,6 @@ endif()
 
 if(WITH_OPENCL)
     target_link_libraries(scrypt-miner PRIVATE OpenCL::OpenCL)
-endif()
-
-if(JSON_FOUND)
-    target_include_directories(scrypt-miner PRIVATE ${JSON_INCLUDE_DIRS})
-    target_link_libraries(scrypt-miner PRIVATE ${JSON_LIBRARIES})
 endif()
 
 # Windows specific
