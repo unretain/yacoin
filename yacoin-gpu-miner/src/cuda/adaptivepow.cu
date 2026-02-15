@@ -415,4 +415,50 @@ void adaptivepow_cleanup(AdaptivePowContext* ctx) {
     ctx->d_result_count = nullptr;
 }
 
+// ==================== Wrapper functions for miner.cpp ====================
+
+// Initialize CUDA miner context
+int adaptivepow_cuda_init(int deviceId, uint32_t epoch, void** ctx) {
+    AdaptivePowContext* newCtx = (AdaptivePowContext*)malloc(sizeof(AdaptivePowContext));
+    if (!newCtx) return -1;
+
+    int result = adaptivepow_init(newCtx, deviceId, epoch);
+    if (result != 0) {
+        free(newCtx);
+        *ctx = nullptr;
+        return result;
+    }
+
+    *ctx = newCtx;
+    return 0;
+}
+
+// Generate DAG
+int adaptivepow_cuda_generate_dag(void* ctx) {
+    if (!ctx) return -1;
+    AdaptivePowContext* minerCtx = (AdaptivePowContext*)ctx;
+
+    // Generate seed for this epoch
+    uint32_t seed[8] = {0};
+    seed[0] = minerCtx->epoch;
+
+    return adaptivepow_generate_dag(minerCtx, seed);
+}
+
+// Search for valid nonce
+int adaptivepow_cuda_search(void* ctx, const uint32_t* header, uint64_t target,
+                            uint64_t startNonce, uint64_t* foundNonce, uint32_t* hashCount) {
+    if (!ctx) return -1;
+    return adaptivepow_search((AdaptivePowContext*)ctx, header, target,
+                              startNonce, foundNonce, hashCount);
+}
+
+// Cleanup CUDA resources
+void adaptivepow_cuda_cleanup(void* ctx) {
+    if (!ctx) return;
+    AdaptivePowContext* minerCtx = (AdaptivePowContext*)ctx;
+    adaptivepow_cleanup(minerCtx);
+    free(minerCtx);
+}
+
 } // extern "C"
