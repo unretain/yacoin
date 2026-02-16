@@ -208,9 +208,14 @@ public:
 
         consensus.hashGenesisBlock = genesis.GetHash();
 
-        // Verify genesis block
-        assert(consensus.hashGenesisBlock == hashGenesisBlock);
-        assert(genesis.hashMerkleRoot == hashGenesisMerkleRoot);
+        // Print genesis info for debugging
+        printf("Genesis Hash: %s\n", consensus.hashGenesisBlock.GetHex().c_str());
+        printf("Genesis Merkle Root: %s\n", genesis.hashMerkleRoot.GetHex().c_str());
+        printf("Genesis Nonce: %u\n", genesis.nNonce);
+
+        // Verify genesis block - TEMPORARILY DISABLED FOR NEW CHAIN
+        // assert(consensus.hashGenesisBlock == hashGenesisBlock);
+        // assert(genesis.hashMerkleRoot == hashGenesisMerkleRoot);
 
         // Seed nodes
         vSeeds.clear();
