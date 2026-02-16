@@ -335,8 +335,9 @@ UniValue getwork(const JSONRPCRequest& request)
     // if (g_connman->GetNodeCount(CConnman::CONNECTIONS_ALL) == 0)
     //     throw JSONRPCError(RPC_CLIENT_NOT_CONNECTED, "Yacoin is not connected!");
 
-    if (IsInitialBlockDownload())
-        throw JSONRPCError(RPC_CLIENT_IN_INITIAL_DOWNLOAD, "Yacoin is downloading blocks...");
+    // Allow mining during bootstrap (no blocks to sync yet)
+    // if (IsInitialBlockDownload())
+    //     throw JSONRPCError(RPC_CLIENT_IN_INITIAL_DOWNLOAD, "Yacoin is downloading blocks...");
 
     typedef std::map<uint256, std::pair<CBlock*, CScript> > mapNewBlock_t;
     static mapNewBlock_t mapNewBlock;    // FIXME: thread safety
@@ -537,8 +538,9 @@ UniValue getblocktemplate(const JSONRPCRequest& request)
     // if (g_connman->GetNodeCount(CConnman::CONNECTIONS_ALL) == 0)
     //     throw JSONRPCError(RPC_CLIENT_NOT_CONNECTED, "Yacoin is not connected!");
 
-    if (IsInitialBlockDownload())
-        throw JSONRPCError(RPC_CLIENT_IN_INITIAL_DOWNLOAD, "Yacoin is downloading blocks...");
+    // Allow mining during bootstrap (no blocks to sync yet)
+    // if (IsInitialBlockDownload())
+    //     throw JSONRPCError(RPC_CLIENT_IN_INITIAL_DOWNLOAD, "Yacoin is downloading blocks...");
 
     static CReserveKey reservekey(pwallet);
     std::shared_ptr<CReserveScript> coinbase_script;
