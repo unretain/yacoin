@@ -331,8 +331,9 @@ UniValue getwork(const JSONRPCRequest& request)
             "  \"target\" : little endian hash target\n"
             "If [data] is specified, tries to solve the block and returns true if it was successful.");
 
-    if (g_connman->GetNodeCount(CConnman::CONNECTIONS_ALL) == 0)
-        throw JSONRPCError(RPC_CLIENT_NOT_CONNECTED, "Yacoin is not connected!");
+    // Allow solo mining without peers (for bootstrap/testnet)
+    // if (g_connman->GetNodeCount(CConnman::CONNECTIONS_ALL) == 0)
+    //     throw JSONRPCError(RPC_CLIENT_NOT_CONNECTED, "Yacoin is not connected!");
 
     if (IsInitialBlockDownload())
         throw JSONRPCError(RPC_CLIENT_IN_INITIAL_DOWNLOAD, "Yacoin is downloading blocks...");
@@ -532,8 +533,9 @@ UniValue getblocktemplate(const JSONRPCRequest& request)
     if (strMode != "template")
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid mode");
 
-    if (g_connman->GetNodeCount(CConnman::CONNECTIONS_ALL) == 0)
-        throw JSONRPCError(RPC_CLIENT_NOT_CONNECTED, "Yacoin is not connected!");
+    // Allow solo mining without peers (for bootstrap/testnet)
+    // if (g_connman->GetNodeCount(CConnman::CONNECTIONS_ALL) == 0)
+    //     throw JSONRPCError(RPC_CLIENT_NOT_CONNECTED, "Yacoin is not connected!");
 
     if (IsInitialBlockDownload())
         throw JSONRPCError(RPC_CLIENT_IN_INITIAL_DOWNLOAD, "Yacoin is downloading blocks...");
