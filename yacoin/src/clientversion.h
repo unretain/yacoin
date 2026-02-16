@@ -1,10 +1,10 @@
 // Copyright (c) 2009-2016 The Bitcoin Core developers
-// Copyright (c) 2024-2026 The Scrypt Core developers
+// Copyright (c) 2024-2026 The YaCoin Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef SCRYPT_CLIENTVERSION_H
-#define SCRYPT_CLIENTVERSION_H
+#ifndef YACOIN_CLIENTVERSION_H
+#define YACOIN_CLIENTVERSION_H
 
 #if defined(HAVE_CONFIG_H)
 #include "config/yacoin-config.h"
@@ -14,7 +14,7 @@
 
 // Check that required client information is defined
 #if !defined(CLIENT_VERSION_MAJOR) || !defined(CLIENT_VERSION_MINOR) || !defined(CLIENT_VERSION_REVISION) || !defined(CLIENT_VERSION_BUILD) || !defined(CLIENT_VERSION_IS_RELEASE) || !defined(COPYRIGHT_YEAR)
-#error Client version information missing: version is not defined by scrypt-config.h or in any other way
+#error Client version information missing: version is not defined by yacoin-config.h or in any other way
 #endif
 
 /**
