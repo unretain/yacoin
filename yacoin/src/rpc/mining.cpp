@@ -4,6 +4,7 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+#include "adaptivepow.h"
 #include "base58.h"
 #include "amount.h"
 #include "chain.h"
@@ -479,12 +480,34 @@ UniValue getwork(const JSONRPCRequest& request)
 
         pblock->hashMerkleRoot = pblock->BuildMerkleTree();
 
+        // For AdaptivePow blocks, compute nNonce64 and hashMix
+        if (pblock->IsAdaptivePow())
+        {
+            // Use submitted nonce as 64-bit nonce
+            pblock->nNonce64 = pdata->nonce;
+
+            // Compute AdaptivePow hash to get the mixHash
+            uint256 headerHash = pblock->GetAdaptivePowHeaderHash();
+            uint32_t epoch = GetAdaptivePowEpoch(pblock->nTime, Params().GenesisBlock().nTime, Params().GetConsensus());
+
+            // Ensure DAG is ready
+            if (!g_adaptivePowDAG || !g_adaptivePowDAG->IsValid(epoch)) {
+                InitAdaptivePowDAG(epoch, Params().GetConsensus());
+            }
+
+            AdaptivePowResult result = AdaptivePowHash(headerHash, pblock->nNonce64, g_adaptivePowDAG.get(), Params().GetConsensus());
+            pblock->hashMix = result.hashMix;
+
+            LogPrintf("rpc getwork: AdaptivePow nonce64=%llu, mixHash=%s\n",
+                     pblock->nNonce64, pblock->hashMix.ToString().substr(0,16));
+        }
+
         if (!pblock->SignBlock(*pwallet))
         {
             LogPrintf("rpc getwork, Unable to sign block\n");
             throw JSONRPCError(-100, "Unable to sign block, wallet locked?");
         }
-        
+
         return CheckWork(pblock, *pwallet, reservekey);
     }
 }
