@@ -26,7 +26,7 @@ jobs:
           ./autogen.sh
           ./configure --without-gui --disable-tests
           make -j$(nproc)
-          strip src/yacoind src/yacoin-cli
+          strip src/yacoind src/yacoin-cli || true
 
       - name: Package
         run: |
