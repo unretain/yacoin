@@ -35,15 +35,15 @@ uint32_t nBlockSequenceId = 1;
 
 void CBlockHeader::SetNull()
 {
-	// Scrypt coin uses AdaptivePow (version 8+)
-	nVersion = VERSION_of_block_for_scrypt_adaptivepow;
+	// YaCoin uses Scrypt N-factor (version 7)
+	nVersion = VERSION_of_block_for_yac_05x_new;
 	hashPrevBlock = 0;
 	hashMerkleRoot = 0;
 	nTime = 0;
 	nBits = 0;
 	nNonce = 0;
-	nNonce64 = 0;      // AdaptivePow 64-bit nonce
-	hashMix.SetNull(); // AdaptivePow mix hash
+	nNonce64 = 0;
+	hashMix.SetNull();
 	blockHash = 0;
 	blockSHA256Hash = 0;
 	memset(UVOIDBEGIN(previousBlockHeader), 0, sizeof(struct block_header));

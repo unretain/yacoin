@@ -478,10 +478,9 @@ std::unique_ptr<CBlockTemplate> BlockAssembler::CreateNewBlock(const CScript& sc
     CBlockIndex* pindexPrev = chainActive.Tip();
     nHeight = pindexPrev->nHeight + 1;
 
-    // Block version - use AdaptivePow for Scrypt Coin
-    pblock->nVersion = VERSION_of_block_for_scrypt_adaptivepow;
-    pblock->nNonce64 = 0;
-    pblock->hashMix.SetNull();
+    // Block version - use Scrypt N-factor (simpler, proven algorithm)
+    pblock->nVersion = VERSION_of_block_for_yac_05x_new;
+    pblock->nNonce = 0;
 
     // here we can fiddle with time to try to make block generation easier
     pblock->nTime = GetAdjustedTime();
