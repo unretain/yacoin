@@ -4,7 +4,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #if defined(HAVE_CONFIG_H)
-#include "config/scrypt-config.h"
+#include "config/yacoin-config.h"
 #endif
 
 #include "util.h"
@@ -536,13 +536,13 @@ void PrintExceptionContinue(const std::exception* pex, const char* pszThread)
 
 fs::path GetDefaultDataDir()
 {
-    // Windows < Vista: C:\Documents and Settings\Username\Application Data\Scrypt
-    // Windows >= Vista: C:\Users\Username\AppData\Roaming\Scrypt
-    // Mac: ~/Library/Application Support/Scrypt
-    // Unix: ~/.scrypt
+    // Windows < Vista: C:\Documents and Settings\Username\Application Data\YaCoin
+    // Windows >= Vista: C:\Users\Username\AppData\Roaming\YaCoin
+    // Mac: ~/Library/Application Support/YaCoin
+    // Unix: ~/.yacoin
 #ifdef WIN32
     // Windows
-    return GetSpecialFolderPath(CSIDL_APPDATA) / "Scrypt";
+    return GetSpecialFolderPath(CSIDL_APPDATA) / "YaCoin";
 #else
     fs::path pathRet;
     char* pszHome = getenv("HOME");
@@ -552,10 +552,10 @@ fs::path GetDefaultDataDir()
         pathRet = fs::path(pszHome);
 #ifdef MAC_OSX
     // Mac
-    return pathRet / "Library/Application Support/Scrypt";
+    return pathRet / "Library/Application Support/YaCoin";
 #else
     // Unix
-    return pathRet / ".scrypt";
+    return pathRet / ".yacoin";
 #endif
 #endif
 }

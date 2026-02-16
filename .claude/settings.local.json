@@ -7,7 +7,10 @@
       "Bash(gh release:*)",
       "Bash(gh run view:*)",
       "Bash(gh run list:*)",
-      "Bash(gh workflow run:*)"
+      "Bash(gh workflow run:*)",
+      "Bash(gh repo rename:*)",
+      "Bash(git remote set-url:*)",
+      "Bash(git rm:*)"
     ]
   }
 }

@@ -5,7 +5,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #if defined(HAVE_CONFIG_H)
-#include "config/scrypt-config.h"
+#include "config/yacoin-config.h"
 #endif
 
 #include "init.h"
@@ -466,8 +466,8 @@ std::string HelpMessage(HelpMessageMode mode)
 
 std::string LicenseInfo()
 {
-    const std::string URL_SOURCE_CODE = "<https://github.com/unretain/scrypt>";
-    const std::string URL_WEBSITE = "<https://github.com/unretain/scrypt>";
+    const std::string URL_SOURCE_CODE = "<https://github.com/unretain/yacoin>";
+    const std::string URL_WEBSITE = "<https://github.com/unretain/yacoin>";
 
     return CopyrightHolders(strprintf(_("Copyright (C) %i-%i"), 2013, COPYRIGHT_YEAR) + " ") + "\n" +
            "\n" +

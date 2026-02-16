@@ -7,7 +7,7 @@
 #define SCRYPT_CLIENTVERSION_H
 
 #if defined(HAVE_CONFIG_H)
-#include "config/scrypt-config.h"
+#include "config/yacoin-config.h"
 #endif //HAVE_CONFIG_H
 
 #include "version.h"

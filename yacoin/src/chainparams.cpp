@@ -108,9 +108,9 @@ static const char* pszTimestamp = "YaCoin Reborn - GPU Mining for Everyone - Feb
 static const uint32_t nGenesisTime = 1738886400;  // Feb 7, 2026 00:00:00 UTC
 
 // Genesis block - MINED
-static uint256 hashGenesisBlock = uint256S("0x2e1027aba14af0d4ffa1515f5f862017b17b0dde43158bef8fb75b4125424c9e");
+static uint256 hashGenesisBlock = uint256S("0x2622b6ce9f145ff57e3d3b50f16e7484532cadb8f53cb48feee3f94cf006b00e");
 static uint32_t nGenesisNonce = 1;
-static uint256 hashGenesisMerkleRoot = uint256S("0xf1532ab75adc9e3a21ea5e5b22c82da2221ae588cc4b0494ae09c6ff1eb81a6e");
+static uint256 hashGenesisMerkleRoot = uint256S("0xdbabf37706207412eb24d6903d5cc5c1f667b465c9b26e3e774986e0560fb75a");
 
 // AdaptivePow parameters
 static const uint64_t ADAPTIVEPOW_DAG_BASE_SIZE = 1ULL << 30;  // 1 GB
@@ -208,14 +208,9 @@ public:
 
         consensus.hashGenesisBlock = genesis.GetHash();
 
-        // Print genesis info for debugging
-        printf("Genesis Hash: %s\n", consensus.hashGenesisBlock.GetHex().c_str());
-        printf("Genesis Merkle Root: %s\n", genesis.hashMerkleRoot.GetHex().c_str());
-        printf("Genesis Nonce: %u\n", genesis.nNonce);
-
-        // Verify genesis block - TEMPORARILY DISABLED FOR NEW CHAIN
-        // assert(consensus.hashGenesisBlock == hashGenesisBlock);
-        // assert(genesis.hashMerkleRoot == hashGenesisMerkleRoot);
+        // Verify genesis block
+        assert(consensus.hashGenesisBlock == hashGenesisBlock);
+        assert(genesis.hashMerkleRoot == hashGenesisMerkleRoot);
 
         // Seed nodes
         vSeeds.clear();

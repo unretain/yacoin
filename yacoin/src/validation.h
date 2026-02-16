@@ -8,7 +8,7 @@
 #define YACOIN_VALIDATION_H
 
 #if defined(HAVE_CONFIG_H)
-#include "config/scrypt-config.h"
+#include "config/yacoin-config.h"
 #endif
 
 #include "amount.h"
