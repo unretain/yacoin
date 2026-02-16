@@ -101,8 +101,8 @@
 // Application startup time (used for uptime calculation)
 const int64_t nStartupTime = GetTime();
 
-const char * const YACOIN_CONF_FILENAME = "scrypt.conf";
-const char * const YACOIN_PID_FILENAME = "scryptd.pid";
+const char * const YACOIN_CONF_FILENAME = "yacoin.conf";
+const char * const YACOIN_PID_FILENAME = "yacoind.pid";
 
 ArgsManager gArgs;
 bool fPrintToConsole = false;
